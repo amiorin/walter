@@ -98,7 +98,9 @@
                              :next-fn (fn [step next-step {:keys [::bc/exit ::workflow/dirs] :as opts}]
                                         (let [swap-opts! (fn [kw next-opts & opts-fns]
                                                            (swap! all-opts assoc kw opts)
-                                                           (let [new-opts (merge (core/ok) {::workflow/dirs dirs} next-opts)]
+                                                           (let [new-opts (merge next-opts
+                                                                                 {::workflow/dirs dirs}
+                                                                                 (select-keys opts [::bc/exit ::bc/err]))]
                                                              (reduce (fn [a f]
                                                                        (f a)) new-opts opts-fns)))]
                                           (cond
@@ -120,7 +122,9 @@
 
 (comment
   (debug tap-values
-    (resource-create [step-fns/bling-step-fn] {}))
+    (resource-create [(fn [f step opts]
+                        (tap> [step opts])
+                        (f step opts))] {}))
   (-> tap-values))
 
 (defn resource-delete
