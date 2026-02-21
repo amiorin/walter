@@ -1,15 +1,15 @@
-{:deps {amiorin/clare-walter {:local/root "."}}
+{:deps {amiorin/walter-walter {:local/root "."}}
  :tasks
- {:requires ([clare :as clare])
+ {:requires ([walter :as walter])
   tidy {:doc "tidy clojure files"
         :task (do (shell "clojure-lsp clean-ns")
                   (shell "clojure-lsp format"))}
-  help {:doc "the clare help"
+  help {:doc "the walter help"
         :override-builtin true
         :task (println "Help")}
   tofu {:doc "bb tofu render tofu:init lock tofu:apply:-auto-approve"
-        :task (clare/tofu* *command-line-args* {:big-config/env :shell})}
+        :task (walter/tofu* *command-line-args* {:big-config/env :shell})}
   ansible {:doc "bb ansible render ansible-playbook:main.yml unlock-any"
-           :task (clare/ansible* *command-line-args* {:big-config/env :shell})}
+           :task (walter/ansible* *command-line-args* {:big-config/env :shell})}
   resource {:doc "bb resource create"
-            :task (clare/resource* *command-line-args* {:big-config/env :shell})}}}
+            :task (walter/resource* *command-line-args* {:big-config/env :shell})}}}
