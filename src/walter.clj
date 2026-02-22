@@ -4,6 +4,7 @@
    [big-config :as bc]
    [big-config.core :as core]
    [big-config.render :as render]
+   [big-config.run :as run]
    [big-config.step-fns :as step-fns]
    [big-config.utils :refer [debug]]
    [big-config.workflow :as workflow]
@@ -67,27 +68,26 @@
     (ansible* "render" {::bc/env :repl}))
   (-> tap-values))
 
-(defn populate-params
+(defn extract-params
   [{:keys [::workflow/dirs] :as opts}]
   (let [ip (-> (p/shell {:dir (::tofu dirs)
                          :out :string} "tofu show --json")
                :out
                (json/parse-string keyword)
                (->> (s/select-one [:values :root_module :resources s/FIRST :values :ipv4_address])))]
-    (assoc opts ::workflow/params {:ip ip})))
-
-(comment
-  (populate-params {::tofu ".dist/clare/tofu"}))
+    {::workflow/params {:ip ip}}))
 
 (defn resource-create
-  [step-fns {:keys [::tofu-opts ::ansible-opts] :as opts}]
-  (let [tofu-opts (merge (workflow/parse-args "render tofu:init")
-                         {::bc/env :repl}
+  [step-fns {:keys [::workflow/globals ::tofu-opts ::ansible-opts] :as opts}]
+  (let [globals-opts (->> (or globals [::bc/env ::run/shell-opts ::workflow/globals])
+                          (select-keys opts))
+        tofu-opts (merge (workflow/parse-args "render tofu:init")
+                         globals-opts
                          tofu-opts)
         ansible-opts (merge (workflow/parse-args "render")
-                            {::bc/env :repl}
+                            globals-opts
                             ansible-opts)
-        all-opts (atom {})
+        opts* (atom opts)
         wf (core/->workflow {:first-step ::start
                              :wire-fn (fn [step step-fns]
                                         (case step
@@ -96,35 +96,32 @@
                                           ::ansible [(partial ansible step-fns) ::end]
                                           ::end [identity]))
                              :next-fn (fn [step next-step {:keys [::bc/exit ::workflow/dirs] :as opts}]
-                                        (let [swap-opts! (fn [kw next-opts & opts-fns]
-                                                           (swap! all-opts assoc kw opts)
-                                                           (let [new-opts (merge next-opts
-                                                                                 {::workflow/dirs dirs}
-                                                                                 (select-keys opts [::bc/exit ::bc/err]))]
-                                                             (reduce (fn [a f]
-                                                                       (f a)) new-opts opts-fns)))]
-                                          (cond
-                                            (= step ::end)
-                                            [nil opts]
+                                        (if (#{::tofu ::ansible} step)
+                                          (do
+                                            (swap! opts* merge (select-keys opts [::bc/exit ::bc/err]))
+                                            (swap! opts* update ::workflow/dirs merge dirs)
+                                            (swap! opts* assoc step opts))
+                                          (reset! opts* opts))
+                                        (cond
+                                          (= step ::end)
+                                          [nil @opts*]
 
-                                            (> exit 0)
-                                            [::end opts]
+                                          (> exit 0)
+                                          [::end @opts*]
 
-                                            :else
-                                            [next-step (case next-step
-                                                         ::tofu (swap-opts! :create-opts tofu-opts)
-                                                         ::ansible (-> (swap-opts! :tofu-opts ansible-opts populate-params))
-                                                         ::end (let [{:keys [create-opts tofu-opts]} @all-opts]
-                                                                 (-> (swap-opts! :ansible-opts create-opts)
-                                                                     (assoc ::tofu-opts tofu-opts)
-                                                                     (assoc ::ansible-opts opts))))])))})]
+                                          :else
+                                          [next-step (case next-step
+                                                       ::tofu tofu-opts
+                                                       ::ansible (merge-with merge ansible-opts (extract-params @opts*))
+                                                       @opts*)]))})]
     (wf step-fns opts)))
 
 (comment
   (debug tap-values
-    (resource-create [(fn [f step opts]
-                        (tap> [step opts])
-                        (f step opts))] {}))
+    (resource-create [#_(fn [f step opts]
+                          (tap> [step opts])
+                          (f step opts))]
+                     {::bc/env :repl}))
   (-> tap-values))
 
 (defn resource-delete
