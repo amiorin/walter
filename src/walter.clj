@@ -11,7 +11,6 @@
    [com.rpl.specter :as s]))
 
 (def step-fns [workflow/print-step-fn
-               #_step-fns/tap-step-fn
                (step-fns/->exit-step-fn ::workflow/end)
                (step-fns/->print-error-step-fn ::workflow/end)])
 
@@ -136,10 +135,7 @@
 
 (defn resource*
   [args & [opts]]
-  (let [step-fns [workflow/print-step-fn
-                  (step-fns/->exit-step-fn ::end-comp)
-                  (step-fns/->print-error-step-fn ::end-comp)]
-        opts (merge (workflow/parse-args args)
+  (let [        opts (merge (workflow/parse-args args)
                     opts
                     {::bc/env :shell})]
     (resource step-fns opts)))

@@ -1,5 +1,5 @@
 ##
-WIP BigConfig template combining OpenTofu and Ansible
+BigConfig template combining OpenTofu and Ansible.
 
 ``` sh
 # tool workflow
