@@ -8,8 +8,8 @@
         :override-builtin true
         :task (println "Help")}
   tofu {:doc "bb tofu render tofu:init lock tofu:apply:-auto-approve"
-        :task (walter/tofu* *command-line-args* {:big-config/env :shell})}
+        :task (walter/tofu* *command-line-args*)}
   ansible {:doc "bb ansible render ansible-playbook:main.yml unlock-any"
-           :task (walter/ansible* *command-line-args* {:big-config/env :shell})}
+           :task (walter/ansible* *command-line-args* {:big-config.workflow/params {:ip "157.180.112.227"}})}
   resource {:doc "bb resource create"
-            :task (walter/resource* *command-line-args* {:big-config/env :shell})}}}
+            :task (walter/resource* *command-line-args*)}}}

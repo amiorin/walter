@@ -4,7 +4,6 @@
    [big-config :as bc]
    [big-config.core :as core]
    [big-config.render :as render]
-   [big-config.run :as run]
    [big-config.step-fns :as step-fns]
    [big-config.utils :refer [debug]]
    [big-config.workflow :as workflow]
@@ -29,7 +28,8 @@
 (defn tofu*
   [args & [opts]]
   (let [opts (merge (workflow/parse-args args)
-                    opts)]
+                    opts
+                    {::bc/env :shell})]
     (tofu step-fns opts)))
 
 (comment
@@ -60,7 +60,8 @@
 (defn ansible*
   [args & [opts]]
   (let [opts (merge (workflow/parse-args args)
-                    opts)]
+                    opts
+                    {::bc/env :shell})]
     (ansible step-fns opts)))
 
 (comment
@@ -140,9 +141,7 @@
                   (step-fns/->print-error-step-fn ::end-comp)]
         opts (merge (workflow/parse-args args)
                     opts
-                    {::bc/env :shell
-                     ::run/shell-opts {:out :inherit
-                                       :err :inherit}})]
+                    {::bc/env :shell})]
     (resource step-fns opts)))
 
 (comment
