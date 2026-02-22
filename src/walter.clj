@@ -78,9 +78,8 @@
     {::workflow/params {:ip ip}}))
 
 (defn resource-create
-  [step-fns {:keys [::workflow/globals ::tofu-opts ::ansible-opts] :as opts}]
-  (let [globals-opts (->> (or globals [::bc/env ::run/shell-opts ::workflow/globals])
-                          (select-keys opts))
+  [step-fns {:keys [::tofu-opts ::ansible-opts] :as opts}]
+  (let [globals-opts (workflow/select-globals opts)
         tofu-opts (merge (workflow/parse-args "render tofu:init tofu:apply:-auto-approve")
                          globals-opts
                          tofu-opts)
@@ -116,26 +115,11 @@
                                                        @opts*)]))})]
     (wf step-fns opts)))
 
-(comment
-  (debug tap-values
-    (resource-create [#_(fn [f step opts]
-                          (tap> [step opts])
-                          (f step opts))]
-                     {::bc/env :lib}))
-  (-> tap-values))
-
 (defn resource-delete
   [step-fns opts]
   (let [opts (merge (workflow/parse-args "render tofu:destroy:-auto-approve")
                     opts)]
     (tofu step-fns opts)))
-
-(comment
-  (debug tap-values
-    (resource-delete [#_(fn [f step opts]
-                        (tap> [step opts])
-                        (f step opts))]  {}))
-  (-> tap-values))
 
 (defn resource
   [step-fns opts]
@@ -149,22 +133,16 @@
                                           ::end-comp [identity]))})]
     (wf step-fns opts)))
 
-(comment
-  (debug tap-values
-    (resource [(fn [f step opts]
-                 (tap> [step opts])
-                 (f step opts))]
-              (merge (workflow/parse-args "create delete")
-                     {::bc/env :repl})))
-  (-> tap-values))
-
 (defn resource*
   [args & [opts]]
   (let [step-fns [workflow/print-step-fn
                   (step-fns/->exit-step-fn ::end-comp)
                   (step-fns/->print-error-step-fn ::end-comp)]
         opts (merge (workflow/parse-args args)
-                    opts)]
+                    opts
+                    {::bc/env :shell
+                     ::run/shell-opts {:out :inherit
+                                       :err :inherit}})]
     (resource step-fns opts)))
 
 (comment
