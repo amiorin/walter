@@ -1,11 +1,5 @@
 # Tell terraform to use the provider and select a version.
 terraform {
-  backend "s3" {
-    bucket = "tf-state-251213589273-eu-west-1"
-    key    = "alpha.tfstate"
-    region = "eu-west-1"
-  }
-
   required_providers {
     hcloud = {
       source  = "hetznercloud/hcloud"
