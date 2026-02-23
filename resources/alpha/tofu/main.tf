@@ -26,7 +26,7 @@ provider "hcloud" {
 }
 
 resource "hcloud_server" "node1" {
-  name        = "node1"
+  name        = "node1-{{ profile }}"
   image       = "ubuntu-24.04"
   server_type = "cx23"
   location    = "hel1"

@@ -4,7 +4,6 @@
    [big-config :as bc]
    [big-config.core :as core]
    [big-config.render :as render]
-   [big-config.run :as run]
    [big-config.step-fns :as step-fns]
    [big-config.utils :refer [debug]]
    [big-config.workflow :as workflow]
@@ -20,15 +19,17 @@
   (let [opts (workflow/prepare {::workflow/name ::tofu
                                 ::render/templates [{:template "alpha"
                                                      :overwrite true
-                                                     :transform [["tofu"
-                                                                  :raw]]}]}
+                                                     :transform [["tofu"]]}]}
                                opts)]
     (workflow/run-steps step-fns opts)))
 
 (defn tofu*
   [args & [opts]]
-  (let [opts (merge (workflow/parse-args args)
-                    {::bc/env :shell}
+  (let [profile "default"
+        opts (merge (workflow/parse-args args)
+                    {::bc/env :shell
+                     ::render/profile profile
+                     ::workflow/prefix (format ".dist/%s" profile)}
                     opts)]
     (tofu step-fns opts)))
 
@@ -59,8 +60,11 @@
 
 (defn ansible*
   [args & [opts]]
-  (let [opts (merge (workflow/parse-args args)
-                    {::bc/env :shell}
+  (let [profile "default"
+        opts (merge (workflow/parse-args args)
+                    {::bc/env :shell
+                     ::render/profile profile
+                     ::workflow/prefix (format ".dist/%s" profile)}
                     opts)]
     (ansible step-fns opts)))
 
@@ -149,8 +153,11 @@
 
 (defn resource*
   [args & [opts]]
-  (let [opts (merge (workflow/parse-args args)
-                    {::bc/env :shell}
+  (let [profile "default"
+        opts (merge (workflow/parse-args args)
+                    {::bc/env :shell
+                     ::render/profile profile
+                     ::workflow/prefix (format ".dist/%s" profile)}
                     opts)]
     (resource step-fns opts)))
 
