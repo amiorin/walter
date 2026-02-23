@@ -1,4 +1,4 @@
-{:deps {io.github.amiorin/dotfiles-v3 {:git/sha "2e0f494f49cddf3bdd8f9d6be97adfc6d4373d32"}}
+{:deps {io.github.amiorin/dotfiles-v3 {:local/root "."}}
  :tasks
  {:requires ([walter :as walter])
   tidy {:doc "tidy clojure files"
