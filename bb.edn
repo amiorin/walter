@@ -1,6 +1,7 @@
 {:deps {io.github.amiorin/dotfiles-v3 {:local/root "."}}
  :tasks
- {:requires ([walter :as walter])
+ {:requires ([comp-wf :as comp-wf]
+             [tool-wf :as tool-wf])
   tidy {:doc "tidy clojure files"
         :task (do (shell "clojure-lsp clean-ns")
                   (shell "clojure-lsp format"))}
@@ -8,8 +9,8 @@
         :override-builtin true
         :task (println "Help")}
   tofu {:doc "bb tofu render tofu:init lock tofu:apply:-auto-approve"
-        :task (walter/tofu* *command-line-args*)}
+        :task (tool-wf/tofu* *command-line-args*)}
   ansible {:doc "bb ansible render ansible-playbook:main.yml unlock-any"
-           :task (walter/ansible* *command-line-args* {:big-config.workflow/params {:ip "157.180.112.227"}})}
-  resource {:doc "bb resource create"
-            :task (walter/resource* *command-line-args*)}}}
+           :task (tool-wf/ansible* *command-line-args* {:big-config.workflow/params {:ip "157.180.112.227"}})}
+  walter {:doc "bb walter create"
+          :task (comp-wf/walter* *command-line-args*)}}}

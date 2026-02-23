@@ -6,5 +6,5 @@ BigConfig template combining OpenTofu and Ansible.
 bb tofu|ansible <step>+
 
 # composition workflow
-bb resource create|delete
+bb walter create|delete
 ```
