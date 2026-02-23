@@ -27,8 +27,8 @@
 (defn tofu*
   [args & [opts]]
   (let [opts (merge (workflow/parse-args args)
-                    opts
-                    {::bc/env :shell})]
+{::bc/env :shell}
+                    opts)]
     (tofu step-fns opts)))
 
 (comment
@@ -59,8 +59,8 @@
 (defn ansible*
   [args & [opts]]
   (let [opts (merge (workflow/parse-args args)
-                    opts
-                    {::bc/env :shell})]
+                    {::bc/env :shell}
+                    opts)]
     (ansible step-fns opts)))
 
 (comment
@@ -135,9 +135,9 @@
 
 (defn resource*
   [args & [opts]]
-  (let [        opts (merge (workflow/parse-args args)
-                    opts
-                    {::bc/env :shell})]
+  (let [opts (merge (workflow/parse-args args)
+                    {::bc/env :shell}
+                    opts)]
     (resource step-fns opts)))
 
 (comment
