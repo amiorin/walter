@@ -149,11 +149,8 @@
 
 (defn resource*
   [args & [opts]]
-  (let [profile "insta-a"
-        opts (merge (workflow/parse-args args)
-                    {::bc/env :shell
-                     ::render/profile profile
-                     ::workflow/prefix (format ".dist/%s" profile)}
+  (let [opts (merge (workflow/parse-args args)
+                    {::bc/env :shell}
                     opts)]
     (resource step-fns opts)))
 
