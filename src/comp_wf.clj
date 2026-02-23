@@ -4,6 +4,7 @@
    [big-config :as bc]
    [big-config.core :as core]
    [big-config.render :as render]
+   [big-config.run :as run]
    [big-config.step-fns :as step-fns]
    [big-config.utils :refer [debug]]
    [big-config.workflow :as workflow]
@@ -17,7 +18,7 @@
 
 (defn extract-params
   [opts]
-  (let [ip (-> (p/shell {:dir (workflow/path opts ::tofu)
+  (let [ip (-> (p/shell {:dir (workflow/path opts ::tool-wf/tofu)
                          :out :string} "tofu show --json")
                :out
                (json/parse-string keyword)
@@ -25,7 +26,7 @@
     {::workflow/params {:ip ip}}))
 
 (defn walter-create
-  [step-fns {:keys [::tofu-opts ::ansible-opts] :as opts}]
+  [step-fns {:keys [::tool-wf/tofu-opts ::tool-wf/ansible-opts] :as opts}]
   (let [globals-opts (workflow/select-globals opts)
         tofu-opts (merge (workflow/parse-args "render tofu:init tofu:apply:-auto-approve")
                          globals-opts
@@ -37,12 +38,12 @@
         wf (core/->workflow {:first-step ::start
                              :wire-fn (fn [step step-fns]
                                         (case step
-                                          ::start [core/ok ::tofu]
-                                          ::tofu [(partial tool-wf/tofu step-fns) ::ansible]
-                                          ::ansible [(partial tool-wf/ansible step-fns) ::end]
+                                          ::start [core/ok ::tool-wf/tofu]
+                                          ::tool-wf/tofu [(partial tool-wf/tofu step-fns) ::tool-wf/ansible]
+                                          ::tool-wf/ansible [(partial tool-wf/ansible step-fns) ::end]
                                           ::end [identity]))
                              :next-fn (fn [step next-step {:keys [::bc/exit] :as opts}]
-                                        (if (#{::tofu ::ansible} step)
+                                        (if (#{::tool-wf/tofu ::tool-wf/ansible} step)
                                           (do
                                             (swap! opts* merge (select-keys opts [::bc/exit ::bc/err]))
                                             (swap! opts* assoc step opts))
@@ -56,8 +57,8 @@
 
                                           :else
                                           [next-step (case next-step
-                                                       ::tofu tofu-opts
-                                                       ::ansible (merge-with merge ansible-opts (extract-params @opts*))
+                                                       ::tool-wf/tofu tofu-opts
+                                                       ::tool-wf/ansible (merge-with merge ansible-opts (extract-params @opts*))
                                                        @opts*)]))})]
     (wf step-fns opts)))
 
@@ -86,17 +87,19 @@
                  (tap> [step opts])
                  (f step opts))]
               {::bc/env :repl
+               ::run/shell-opts {:err *err*
+                                 :out *out*}
                ::workflow/steps [:create]
                ::render/profile profile
                ::workflow/prefix (format ".dist/%s" profile)
-               ::workflow/create-opts {::tofu-opts (workflow/parse-args "render tofu:init")
-                                       ::ansible-opts (workflow/parse-args "render")}
+               ::workflow/create-opts {::tool-wf/tofu-opts (workflow/parse-args "render tofu:init")
+                                       ::tool-wf/ansible-opts (workflow/parse-args "render")}
                ::workflow/delete-opts (workflow/parse-args "render")})))
   (-> tap-values))
 
 (defn walter*
   [args & [opts]]
-  (let [        profile "default"
+  (let [profile "default"
         opts (merge (workflow/parse-args args)
                     {::bc/env :shell
                      ::render/profile profile
