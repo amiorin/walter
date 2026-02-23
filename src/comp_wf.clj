@@ -11,6 +11,10 @@
    [com.rpl.specter :as s]
    [tool-wf :as tool-wf]))
 
+(def step-fns [workflow/print-step-fn
+               (step-fns/->exit-step-fn ::end)
+               (step-fns/->print-error-step-fn ::end)])
+
 (defn extract-params
   [opts]
   (let [ip (-> (p/shell {:dir (workflow/path opts ::tofu)
@@ -78,7 +82,9 @@
 (comment
   (debug tap-values
     (let [profile "insta-a"]
-      (walter tool-wf/step-fns
+      (walter [(fn [f step opts]
+                 (tap> [step opts])
+                 (f step opts))]
               {::bc/env :repl
                ::workflow/steps [:create]
                ::render/profile profile
@@ -90,10 +96,7 @@
 
 (defn walter*
   [args & [opts]]
-  (let [step-fns [workflow/print-step-fn
-                  (step-fns/->exit-step-fn ::end-comp)
-                  (step-fns/->print-error-step-fn ::end-comp)]
-        profile "default"
+  (let [        profile "default"
         opts (merge (workflow/parse-args args)
                     {::bc/env :shell
                      ::render/profile profile
