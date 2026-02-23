@@ -1,16 +1,10 @@
-{:deps {io.github.amiorin/dotfiles-v3 {:local/root "."}}
+{:deps {io.github.amiorin/walter {:git/sha "eaff6fc2964f6982ba13b88d446ead2999d331e9"}}
  :tasks
  {:requires ([comp-wf :as comp-wf]
              [tool-wf :as tool-wf])
-  tidy {:doc "tidy clojure files"
-        :task (do (shell "clojure-lsp clean-ns")
-                  (shell "clojure-lsp format"))}
-  help {:doc "the walter help"
-        :override-builtin true
-        :task (println "Help")}
   tofu {:doc "bb tofu render tofu:init lock tofu:apply:-auto-approve"
         :task (tool-wf/tofu* *command-line-args*)}
   ansible {:doc "bb ansible render ansible-playbook:main.yml unlock-any"
-           :task (tool-wf/ansible* *command-line-args* {:big-config.workflow/params {:ip "157.180.112.227"}})}
+           :task (tool-wf/ansible* *command-line-args*)}
   walter {:doc "bb walter create"
           :task (comp-wf/walter* *command-line-args*)}}}
