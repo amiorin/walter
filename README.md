@@ -1,5 +1,5 @@
 ##
-BigConfig template combining OpenTofu and Ansible.
+Walter is the first BigConfig package. It a remote dev environment.
 
 ``` sh
 # tool workflow
