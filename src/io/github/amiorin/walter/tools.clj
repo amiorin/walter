@@ -8,8 +8,8 @@
    [io.github.amiorin.walter.ansible :as a]))
 
 (def step-fns [workflow/print-step-fn
-               (step-fns/->exit-step-fn ::end)
-               (step-fns/->print-error-step-fn ::end)])
+               (step-fns/->exit-step-fn ::workflow/end)
+               (step-fns/->print-error-step-fn ::workflow/end)])
 
 (defn tofu
   [step-fns opts]
