@@ -1,11 +1,11 @@
 (ns io.github.amiorin.walter.tools
   (:require
-   [io.github.amiorin.walter.ansible :as a]
    [big-config :as bc]
    [big-config.render :as render]
    [big-config.step-fns :as step-fns]
-   [big-config.utils :refer [debug]]
-   [big-config.workflow :as workflow]))
+   [big-config.utils :refer [debug keyword->path]]
+   [big-config.workflow :as workflow]
+   [io.github.amiorin.walter.ansible :as a]))
 
 (def step-fns [workflow/print-step-fn
                (step-fns/->exit-step-fn ::end)
@@ -14,9 +14,9 @@
 (defn tofu
   [step-fns opts]
   (let [opts (workflow/prepare {::workflow/name ::tofu
-                                ::render/templates [{:template "alpha"
+                                ::render/templates [{:template (keyword->path ::tofu)
                                                      :overwrite true
-                                                     :transform [["tofu"]]}]}
+                                                     :transform [["."]]}]}
                                opts)]
     (workflow/run-steps step-fns opts)))
 
@@ -38,10 +38,10 @@
 (defn ansible
   [step-fns opts]
   (let [opts (workflow/prepare {::workflow/name ::ansible
-                                ::render/templates [{:template "alpha"
+                                ::render/templates [{:template (keyword->path ::ansible)
                                                      :overwrite true
                                                      :data-fn a/data-fn
-                                                     :transform [["ansible"
+                                                     :transform [["."
                                                                   :raw]
                                                                  [a/render "roles/users/tasks"
                                                                   {:packages "packages.yml"
