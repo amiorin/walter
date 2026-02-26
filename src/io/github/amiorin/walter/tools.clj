@@ -1,5 +1,6 @@
-(ns tool-wf
+(ns io.github.amiorin.walter.tools
   (:require
+   [io.github.amiorin.walter.ansible :as a]
    [big-config :as bc]
    [big-config.render :as render]
    [big-config.step-fns :as step-fns]
@@ -39,15 +40,15 @@
   (let [opts (workflow/prepare {::workflow/name ::ansible
                                 ::render/templates [{:template "alpha"
                                                      :overwrite true
-                                                     :data-fn 'ansible/data-fn
+                                                     :data-fn a/data-fn
                                                      :transform [["ansible"
                                                                   :raw]
-                                                                 ['ansible/render "roles/users/tasks"
+                                                                 [a/render "roles/users/tasks"
                                                                   {:packages "packages.yml"
                                                                    :repos "repos.yml"
                                                                    :ssh-config "ssh-config.yml"}
                                                                   :raw]
-                                                                 ['ansible/render
+                                                                 [a/render
                                                                   {:inventory "inventory.json"
                                                                    :config "default.config.yml"}
                                                                   :raw]]}]}
@@ -66,5 +67,6 @@
 
 (comment
   (debug tap-values
-    (ansible* "render" {::bc/env :repl}))
+    (ansible* "render" {::bc/env :repl
+                        ::workflow/params {:ip "89.167.101.16"}}))
   (-> tap-values))

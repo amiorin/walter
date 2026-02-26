@@ -1,6 +1,6 @@
 {:paths   ["src" "resources"]
  :deps    {org.clojure/clojure          {:mvn/version "1.12.3"}
-           io.github.amiorin/big-config {:git/sha "fc640a9aed89ddb3ae8a16f6b0df99185e4fce4d"}
+           io.github.amiorin/big-config {:git/tag "0.3.333", :git/sha "b75c0d7"}
            #_#_io.github.amiorin/big-config {:local/root "../../big-config/main"}
            cheshire/cheshire            {:mvn/version "6.1.0"}
            clj-commons/clj-yaml         {:mvn/version "1.0.29"}
