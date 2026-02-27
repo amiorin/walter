@@ -26,14 +26,14 @@
     {::workflow/params {:ip ip}}))
 
 (def create
-  (workflow/->workflow* {:first-step ::start-create
-                         :last-step ::end-create
+  (workflow/->workflow* {:first-step ::start-create-or-delete
+                         :last-step ::end-create-or-delete
                          :pipeline [::tools/tofu ["render tofu:init tofu:apply:-auto-approve"]
                                     ::tools/ansible ["render ansible-playbook:main.yml" extract-params]]}))
 
 (def delete
-  (workflow/->workflow* {:first-step ::start-create
-                         :last-step ::end-create
+  (workflow/->workflow* {:first-step ::start-create-or-delete
+                         :last-step ::end-create-or-delete
                          :pipeline [::tools/tofu ["render tofu:init tofu:destroy:-auto-approve"]]}))
 
 (defn walter
