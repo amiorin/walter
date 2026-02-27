@@ -16,20 +16,20 @@
                (step-fns/->exit-step-fn ::end)
                (step-fns/->print-error-step-fn ::end)])
 
-(defn extract-params
+(defn opts-fn
   [opts]
   (let [ip (-> (p/shell {:dir (workflow/path opts ::tools/tofu)
                          :out :string} "tofu show --json")
                :out
                (json/parse-string keyword)
                (->> (s/select-one [:values :root_module :resources s/FIRST :values :ipv4_address])))]
-    {::workflow/params {:ip ip}}))
+    (merge-with merge opts {::workflow/params {:ip ip}})))
 
 (def create
   (workflow/->workflow* {:first-step ::start-create-or-delete
                          :last-step ::end-create-or-delete
                          :pipeline [::tools/tofu ["render tofu:init tofu:apply:-auto-approve"]
-                                    ::tools/ansible ["render ansible-playbook:main.yml" extract-params]]}))
+                                    ::tools/ansible ["render ansible-playbook:main.yml" opts-fn]]}))
 
 (def delete
   (workflow/->workflow* {:first-step ::start-create-or-delete
