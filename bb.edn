@@ -6,8 +6,8 @@
         :task (do (shell "clojure-lsp clean-ns")
                   (shell "clojure-lsp format"))}
   tofu {:doc "bb tofu render tofu:init lock tofu:apply:-auto-approve"
-        :task (tools/tofu* *command-line-args*)}
+        :task (tools/tofu* *command-line-args* (package/walter-opts {:big-config.workflow/params {:hyperscaler "oci"}}))}
   ansible {:doc "bb ansible render ansible-playbook:main.yml unlock-any"
-           :task (tools/ansible* *command-line-args*)}
+           :task (tools/ansible* *command-line-args* (package/walter-opts {}))}
   walter {:doc "bb walter create"
-          :task (package/walter* *command-line-args*)}}}
+          :task (package/walter* *command-line-args* {:big-config.workflow/params {:hyperscaler "oci"}})}}}

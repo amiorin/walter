@@ -39,3 +39,10 @@ resource "hcloud_server" "node1" {
     inline = ["ls"]
   }
 }
+
+output "params" {
+  value = {
+    ip = hcloud_server.node1.ipv4_address
+    sudoer = "root"
+  }
+}

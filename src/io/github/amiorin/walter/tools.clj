@@ -16,7 +16,8 @@
   (let [opts (workflow/prepare {::workflow/name ::tofu
                                 ::render/templates [{:template (keyword->path ::tofu)
                                                      :overwrite true
-                                                     :transform [["."]]}]}
+                                                     :hyperscaler "hcloud"
+                                                     :transform [["{{ hyperscaler }}"]]}]}
                                opts)]
     (workflow/run-steps step-fns opts)))
 
@@ -32,7 +33,7 @@
 
 (comment
   (debug tap-values
-    (tofu* "render tofu:plan" {::bc/env :repl}))
+    (tofu* "render tofu:init tofu:plan" {::bc/env :repl}))
   (-> tap-values))
 
 (defn ansible

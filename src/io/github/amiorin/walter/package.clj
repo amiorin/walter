@@ -1,9 +1,9 @@
 (ns io.github.amiorin.walter.package
   (:require
+   [babashka.fs :as fs]
    [babashka.process :as p]
    [big-config :as bc]
    [big-config.core :as core]
-   [big-config.render :as render]
    [big-config.run :as run]
    [big-config.step-fns :as step-fns]
    [big-config.utils :refer [debug]]
@@ -18,12 +18,25 @@
 
 (defn opts-fn
   [opts]
-  (let [ip (-> (p/shell {:dir (workflow/path opts ::tools/tofu)
-                         :out :string} "tofu show --json")
-               :out
-               (json/parse-string keyword)
-               (->> (s/select-one [:values :root_module :resources s/FIRST :values :ipv4_address])))]
-    (merge-with merge opts {::workflow/params {:ip ip}})))
+  (let [dir (workflow/path opts ::tools/tofu)]
+    (merge-with merge opts {::workflow/params (if (fs/exists? dir)
+                                                (-> (p/shell {:dir dir
+                                                              :out :string} "tofu output --json")
+                                                    :out
+                                                    (json/parse-string keyword)
+                                                    (->> (s/select-one [:params :value])))
+                                                {:ip "192.168.0.1"
+                                                 :sudoer "ubuntu"})})))
+
+(defn walter-opts
+  [opts]
+  (-> opts
+      (workflow/new-prefix ::start-create-or-delete)
+      opts-fn))
+
+(comment
+  (-> {}
+      walter-opts))
 
 (def create
   (workflow/->workflow* {:first-step ::start-create-or-delete
@@ -37,10 +50,15 @@
                          :pipeline [::tools/tofu ["render tofu:init tofu:destroy:-auto-approve"]]}))
 
 (defn walter
-  [step-fns opts]
-  (let [opts (merge {::workflow/create-fn create
-                     ::workflow/delete-fn delete}
-                    opts)
+  [step-fns {:keys [::workflow/params] :as opts}]
+  (let [hyperscaler "hcloud"
+        opts (->> opts
+                  (merge {::workflow/create-fn create
+                          ::workflow/delete-fn delete})
+                  (s/setval [::workflow/create-opts ::tools/tofu-opts ::workflow/params] {:hyperscaler hyperscaler})
+                  (s/setval [::workflow/delete-opts ::tools/tofu-opts ::workflow/params] {:hyperscaler hyperscaler})
+                  (s/transform [::workflow/create-opts ::tools/tofu-opts ::workflow/params] #(merge % params))
+                  (s/transform [::workflow/delete-opts ::tools/tofu-opts ::workflow/params] #(merge % params)))
         wf (core/->workflow {:first-step ::start
                              :wire-fn (fn [step step-fns]
                                         (case step
@@ -50,28 +68,23 @@
 
 (comment
   (debug tap-values
-    (let [profile "insta-a"]
-      (walter [(fn [f step opts]
-                 (tap> [step opts])
-                 (f step opts))]
-              {::bc/env :repl
-               ::run/shell-opts {:err *err*
-                                 :out *out*}
-               ::workflow/steps [:create]
-               ::render/profile profile
-               ::workflow/prefix (format ".dist/%s" profile)
-               ::workflow/create-opts {::tools/tofu-opts (workflow/parse-args "render tofu:init")
-                                       ::tools/ansible-opts (workflow/parse-args "render")}
-               ::workflow/delete-opts (workflow/parse-args "render")})))
+    (walter [(fn [f step opts]
+               (tap> [step opts])
+               (f step opts))]
+            {::bc/env :repl
+             ::run/shell-opts {:err *err*
+                               :out *out*}
+             ::workflow/steps [:create]
+             ::workflow/params {:hyperscaler "hcloud"}
+             ::workflow/create-opts {::tools/tofu-opts (workflow/parse-args "render tofu:init tofu:plan")
+                                     ::tools/ansible-opts (workflow/parse-args "render")}
+             ::workflow/delete-opts {::tools/tofu-opts (workflow/parse-args "render tofu:init")}}))
   (-> tap-values))
 
 (defn walter*
   [args & [opts]]
-  (let [profile "default"
-        opts (merge (workflow/parse-args args)
-                    {::bc/env :shell
-                     ::render/profile profile
-                     ::workflow/prefix (format ".dist/%s" profile)}
+  (let [opts (merge (workflow/parse-args args)
+                    {::bc/env :shell}
                     opts)]
     (walter step-fns opts)))
 

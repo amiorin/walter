@@ -8,5 +8,6 @@
     pkgs.jet
     pkgs.hcl2json
     pkgs.awscli2
+    pkgs.oci-cli
   ];
 }
