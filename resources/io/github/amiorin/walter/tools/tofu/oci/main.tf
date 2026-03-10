@@ -61,5 +61,7 @@ output "params" {
     ip = oci_core_instance.ampere_vm.public_ip
     sudoer = "ubuntu"
     uid = "1001"
+    name = "walter"
+    user = "ubuntu"
   }
 }
