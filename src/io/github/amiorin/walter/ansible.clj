@@ -9,7 +9,7 @@
         hosts [(or ip "77.42.91.213")]
         users [{:name main-user
                 :uid (or uid "1000")
-                :doomemacs "6ea4332b854d311d7ec8ae6384fae8d9871f5730"
+                :doomemacs "dd72eac1971616a6ebe81067cca33b14c148cbcd"
                 :remove false}]
         config {:users (filter (complement :remove) users)
                 :remove_users (filter :remove users)
