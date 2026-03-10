@@ -19,7 +19,9 @@
                                                    ["albertomiorin.com" ["albertomiorin" "big-config"]]
                                                    ["big-config" ["deps-new" "hyperlith" "hyperlith-counter"]]
                                                    ["big-container" []]
-                                                   ["rama-jdbc" []]]]
+                                                   ["rama-jdbc" []]
+                                                   ["alice" []]
+                                                   ["walter" []]]]
                              {:user main-user
                               :org "amiorin"
                               :repo repo
