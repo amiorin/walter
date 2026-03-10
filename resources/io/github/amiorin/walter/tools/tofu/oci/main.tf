@@ -30,8 +30,8 @@ resource "oci_core_instance" "ampere_vm" {
   display_name        = "my-ampere-instance"
   shape               = "VM.Standard.A1.Flex"
   shape_config {
-    ocpus         = 4
-    memory_in_gbs = 24
+    ocpus         = 2
+    memory_in_gbs = 12
   }
   create_vnic_details {
     subnet_id        = data.oci_core_subnet.public_subnet.id
@@ -40,7 +40,7 @@ resource "oci_core_instance" "ampere_vm" {
   source_details {
     source_type             = "image"
     source_id               = data.oci_core_images.ubuntu_24_04_arm.images[0].id
-    boot_volume_size_in_gbs = 200
+    boot_volume_size_in_gbs = 100
     boot_volume_vpus_per_gb = 30
   }
   metadata = {
