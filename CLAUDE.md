@@ -48,7 +48,7 @@ The project uses [big-config](https://github.com/amiorin/big-config) as its work
 
 ## REPL Development
 
-The `env/dev/clj/user.clj` sets up a `debug-atom` tap. Use `(debug tap-values ...)` in `comment` blocks (as shown in the source files) to inspect intermediate workflow state. Start with `:dev` alias:
+Use `(debug tap-values ...)` in `comment` blocks (as shown in the source files) to inspect intermediate workflow state. Start with `:dev` alias:
 
 ```bash
 clojure -A:dev

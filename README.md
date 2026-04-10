@@ -44,32 +44,32 @@ Walter uses Babashka (`bb`) to expose its functionality:
 
 - **OpenTofu Tasks:**
   ```bash
-  bb tofu render          # Render templates to .dist/
-  bb tofu init            # Initialize OpenTofu
-  bb tofu plan            # Preview changes
-  bb tofu apply           # Apply infrastructure changes
-  bb tofu destroy         # Teardown infrastructure
+  bb tofu render                  # Render templates to .dist/
+  bb tofu tofu:init               # Initialize OpenTofu
+  bb tofu tofu:plan               # Preview changes
+  bb tofu tofu:apply              # Apply infrastructure changes
+  bb tofu tofu:destroy            # Teardown infrastructure
   ```
 
 - **Ansible Tasks:**
   ```bash
-  bb ansible render       # Render Ansible playbooks and inventories
-  bb ansible playbook     # Run the Ansible playbook
-  bb ansible-local        # Run Ansible tasks locally
+  bb ansible render                          # Render Ansible playbooks and inventories
+  bb ansible ansible-playbook:main.yml       # Run the Ansible playbook
+  bb ansible-local ansible-playbook:main.yml # Run Ansible tasks locally
   ```
 
 ### 3. Customization
 
 The configuration logic is primarily located in:
-- `src/io/github/amiorin/walter/ansible.clj`: Defines users, packages, and repositories.
-- `resources/io/github/amiorin/walter/tools/`: Contains OpenTofu and Ansible templates.
+- `src/clj/io/github/amiorin/walter/ansible.clj`: Defines users, packages, and repositories.
+- `src/resources/io/github/amiorin/walter/tools/`: Contains OpenTofu and Ansible templates.
 
 You can modify `ansible.clj` to change the list of default packages or the repositories you want to clone.
 
 ## Project Structure
 
-- `src/`: Clojure source code for orchestration logic.
-- `resources/`: OpenTofu and Ansible templates and roles.
+- `src/clj/`: Clojure source code for orchestration logic.
+- `src/resources/`: OpenTofu and Ansible templates and roles.
 - `env/`: Development environment setup.
 - `.dist/`: (Generated) Temporary directory for rendered configuration files and tool state.
 - `bb.edn`: Task definitions for Babashka.
