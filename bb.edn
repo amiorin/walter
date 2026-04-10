@@ -1,16 +1,18 @@
 {:deps {io.github.amiorin/walter {:local/root "."}}
  :tasks
  {:requires ([io.github.amiorin.walter.package :as package]
-             [io.github.amiorin.walter.tools :as walter]
-             [io.github.amiorin.alice.tools :as alice])
+             [io.github.amiorin.walter.options :as options]
+             [io.github.amiorin.walter.params :as params]
+             [io.github.amiorin.walter.tools :as tools-walter]
+             [io.github.amiorin.once.tools :as tools-once])
   tidy {:doc "tidy clojure files"
         :task (do (shell "clojure-lsp clean-ns")
                   (shell "clojure-lsp format"))}
   tofu {:doc "bb tofu render tofu:init lock tofu:apply:-auto-approve"
-        :task (walter/tofu* *command-line-args* (package/walter-opts {:big-config.workflow/params {:hyperscaler "oci"}}))}
+        :task (tools-once/tofu* *command-line-args* (params/walter-opts options/bb))}
   ansible {:doc "bb ansible render ansible-playbook:main.yml"
-           :task (walter/ansible* *command-line-args* (package/walter-opts {}))}
+           :task (tools-walter/ansible* *command-line-args* (params/walter-opts options/bb))}
   ansible-local {:doc "bb ansible-local render ansible-playbook:main.yml"
-                 :task (alice/ansible-local* *command-line-args* (package/walter-opts {}))}
+                 :task (tools-once/ansible-local* *command-line-args* (params/walter-opts options/bb))}
   walter {:doc "bb walter create"
-          :task (package/walter* *command-line-args* {:big-config.workflow/params {:hyperscaler "oci"}})}}}
+          :task (package/walter* *command-line-args* options/bb)}}}

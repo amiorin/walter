@@ -11,31 +11,6 @@
                (step-fns/->exit-step-fn ::workflow/end)
                (step-fns/->print-error-step-fn ::workflow/end)])
 
-(defn tofu
-  [step-fns opts]
-  (let [opts (workflow/prepare {::workflow/name ::tofu
-                                ::render/templates [{:template (keyword->path ::tofu)
-                                                     :overwrite true
-                                                     :hyperscaler "hcloud"
-                                                     :transform [["{{ hyperscaler }}"]]}]}
-                               opts)]
-    (workflow/run-steps step-fns opts)))
-
-(defn tofu*
-  [args & [opts]]
-  (let [profile "default"
-        opts (merge (workflow/parse-args args)
-                    {::bc/env :shell
-                     ::render/profile profile
-                     ::workflow/prefix (format ".dist/%s" profile)}
-                    opts)]
-    (tofu step-fns opts)))
-
-(comment
-  (debug tap-values
-    (tofu* "render tofu:init tofu:plan" {::bc/env :repl}))
-  (-> tap-values))
-
 (defn ansible
   [step-fns opts]
   (let [opts (workflow/prepare {::workflow/name ::ansible

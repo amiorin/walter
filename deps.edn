@@ -1,13 +1,13 @@
-{:paths   ["src" "resources"]
+{:paths   ["src/clj" "src/resources"]
  :deps    {org.clojure/clojure              {:mvn/version "1.12.3"}
-           io.github.amiorin/big-config     {:git/tag "0.3.352", :git/sha "86ff81a" :git/url "https://github.com/amiorin/big-config"}
+           io.github.amiorin/big-config     {:git/tag "0.3.375", :git/sha "18fa4ab" :git/url "https://github.com/amiorin/big-config"}
            #_#_io.github.amiorin/big-config {:local/root "../../big-config/main"}
-           cheshire/cheshire                {:mvn/version "6.1.0"}
+           cheshire/cheshire                {:mvn/version "6.2.0"}
            clj-commons/clj-yaml             {:mvn/version "1.0.29"}
            com.rpl/specter                  {:mvn/version "1.1.6"}
-           babashka/fs                      {:mvn/version "0.5.31"}
+           babashka/fs                      {:mvn/version "0.5.32"}
            babashka/process                 {:mvn/version "0.6.25"}
-           io.github.amiorin/alice          {:git/sha "9c7374cb90df6319676eec348e553f36aaeeaad3"}}
+           io.github.amiorin/once           {:git/sha "63bf9873fb524e535febff1e488d2649886dfb54"}}
  :aliases {:dev  {:extra-paths ["env/dev/clj" "test"]
                   :jvm-opts ["-Djdk.attach.allowAttachSelf=true"]}
            :test {:extra-paths ["test"]
