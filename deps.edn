@@ -5,9 +5,9 @@
            cheshire/cheshire                {:mvn/version "6.2.0"}
            clj-commons/clj-yaml             {:mvn/version "1.0.29"}
            com.rpl/specter                  {:mvn/version "1.1.6"}
-           babashka/fs                      {:mvn/version "0.5.32"}
+           babashka/fs                      {:mvn/version "0.5.33"}
            babashka/process                 {:mvn/version "0.6.25"}
-           io.github.amiorin/once           {:git/sha "63bf9873fb524e535febff1e488d2649886dfb54"}}
+           io.github.amiorin/once           {:git/sha "b6123903a70cf072ffcf65e1ca5a033c344a6abf"}}
  :aliases {:dev  {:extra-paths ["env/dev/clj" "test"]
                   :jvm-opts ["-Djdk.attach.allowAttachSelf=true"]}
            :test {:extra-paths ["test"]
