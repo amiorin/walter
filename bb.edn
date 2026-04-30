@@ -1,18 +1,34 @@
 {:deps {io.github.amiorin/walter {:local/root "."}}
  :tasks
  {:requires ([io.github.amiorin.walter.package :as package]
-             [io.github.amiorin.walter.options :as options]
              [io.github.amiorin.walter.params :as params]
              [io.github.amiorin.walter.tools :as tools-walter]
              [io.github.amiorin.once.tools :as tools-once])
+  :init (def bb {:big-config.render/profile "walter"
+                 :big-config.workflow/params {:provider-compute "oci"
+                                              :oci-config-file-profile "DEFAULT"
+                                              :oci-subnet-id "ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaaotya32pihejgi25vrdfnjda3qg52kpsjnd7od5oiqifbsi4rqqma"
+                                              :oci-compartment-id "ocid1.tenancy.oc1..aaaaaaaal4wmmpzv2fzkdz2vrfdizywgzjid6dqlgcankrrr7jyydo7ozb3a"
+                                              :oci-availability-domain "xTQn:EU-FRANKFURT-1-AD-1"
+                                              :oci-display-name "walter"
+                                              :oci-shape "VM.Standard.A1.Flex"
+                                              :oci-ocpus 1
+                                              :oci-memory-in-gbs 6
+                                              :oci-boot-volume-size-in-gbs 50
+                                              :oci-boot-volume-vpus-per-gb 30
+                                              :oci-ssh-authorized-keys "~/.ssh/id_ed25519.pub"
+                                              :provider-backend "s3"
+                                              :s3-bucket "tf-state-251213589273-eu-west-1"
+                                              :s3-region "eu-west-1"
+                                              :package "walter"}})
   tidy {:doc "tidy clojure files"
         :task (do (shell "clojure-lsp clean-ns")
                   (shell "clojure-lsp format"))}
   tofu {:doc "bb tofu render tofu:init lock tofu:apply:-auto-approve"
-        :task (tools-once/tofu* *command-line-args* (params/walter-opts options/bb))}
+        :task (tools-once/tofu* *command-line-args* (params/walter-opts bb))}
   ansible {:doc "bb ansible render ansible-playbook:main.yml"
-           :task (tools-walter/ansible* *command-line-args* (params/walter-opts options/bb))}
+           :task (tools-walter/ansible* *command-line-args* (params/walter-opts bb))}
   ansible-local {:doc "bb ansible-local render ansible-playbook:main.yml"
-                 :task (tools-once/ansible-local* *command-line-args* (params/walter-opts options/bb))}
+                 :task (tools-once/ansible-local* *command-line-args* (params/walter-opts bb))}
   walter {:doc "bb walter create"
-          :task (package/walter* *command-line-args* options/bb)}}}
+          :task (package/walter* *command-line-args* bb)}}}
