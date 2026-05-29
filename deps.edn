@@ -2,8 +2,8 @@
  :deps    {org.clojure/clojure              {:mvn/version "1.12.5"}
            io.github.amiorin/big-config     {:git/url "https://github.com/bigconfig-ai/big-config.git"
                                              :git/sha "2a3659e707f58eb743252c5493e7270682bb8d3d"}
-           io.github.bigconig-ai/once       {:git/url "https://github.com/bigconfig-ai/once.git"
-                                             :git/sha "cb7a0802eb532415e59d1eecf45b0c83f3dad9fb"}
+           io.github.bigconfig-ai/once       {:git/url "https://github.com/bigconfig-ai/once.git"
+                                              :git/sha "cb7a0802eb532415e59d1eecf45b0c83f3dad9fb"}
            cheshire/cheshire                {:mvn/version "6.2.0"}
            clj-commons/clj-yaml             {:mvn/version "1.0.29"}}
  :aliases {:dev  {:extra-paths ["env/dev/clj" "test"]

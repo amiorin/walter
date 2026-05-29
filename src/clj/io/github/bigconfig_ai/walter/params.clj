@@ -1,7 +1,7 @@
 (ns io.github.bigconfig-ai.walter.params
   (:require
    [big-config.workflow :as workflow]
-   [io.github.bigconig-ai.once.params :as params-once]
+   [io.github.bigconfig-ai.once.params :as params-once]
    [io.github.bigconfig-ai.walter.options :as options]))
 
 (def opts-fn (comp params-once/tofu-params workflow/read-bc-pars))

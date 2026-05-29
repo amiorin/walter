@@ -51,7 +51,7 @@ The project uses [big-config](https://github.com/bigconfig-ai/big-config) as its
 - `io.github.bigconfig-ai.walter.params` — composes `opts-fn` / `walter-opts` for reading big-config params
 
 **External dependencies:**
-- `io.github.bigconig-ai/once` — provides shared `tofu*` and `ansible-local*` tooling
+- `io.github.bigconfig-ai/once` — provides shared `tofu*` and `ansible-local*` tooling
 - `io.github.amiorin/big-config` — workflow engine, template rendering, step functions (pinned to the `bigconfig-ai/big-config` Git repo by URL)
 
 ## REPL Development

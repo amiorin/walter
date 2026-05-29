@@ -1,6 +1,6 @@
 (ns io.github.bigconfig-ai.walter.cli
   (:require
-   [io.github.bigconig-ai.once.tools :as tools-once]
+   [io.github.bigconfig-ai.once.tools :as tools-once]
    [io.github.bigconfig-ai.walter.options :as options]
    [io.github.bigconfig-ai.walter.package :as package]
    [io.github.bigconfig-ai.walter.params :as params]
