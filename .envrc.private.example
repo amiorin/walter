@@ -1,4 +1,8 @@
 export BC_PAR_COMPUTE_PUBKEY="$(cat ~/.ssh/id_ed25519.pub)"
-export BC_PAR_HCLOUD_TOKEN=...
-export BC_PAR_DO_TOKEN=...
-export ATUIN_LOGIN="atuin login -u amiorin -p ... -k '...'"
+export BC_PAR_HCLOUD_TOKEN="REPLACE_ME"
+export BC_PAR_DO_TOKEN="REPLACE_ME"
+export BC_PAR_R2_BUCKET="REPLACE_ME"
+export BC_PAR_R2_ENDPOINT="REPLACE_ME"
+export BC_PAR_R2_ACCESS_KEY_ID="REPLACE_ME"
+export BC_PAR_R2_SECRET_ACCESS_KEY="REPLACE_ME"
+export ATUIN_LOGIN=""

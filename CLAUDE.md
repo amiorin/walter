@@ -1,71 +1,51 @@
 # CLAUDE.md
 
-This file provides guidance to coding agents when working in this repository.
+This file describes the Walter TypeScript codebase for AI assistants. Read it before making changes.
 
-## What Walter Does
+## Project Overview
 
-Walter is an infrastructure automation tool that provisions cloud VMs (Hetzner Cloud, OCI, DigitalOcean, or an existing no-infra host via the shared Once Tofu templates) and configures them as development environments. It orchestrates **OpenTofu** (infrastructure) and **Ansible** (configuration) via **Clojure/Babashka**.
+Walter provisions a cloud VM (or targets an existing no-infra host through Once's shared Tofu templates) and configures it as a development workstation with Ansible. This leaf is the TypeScript implementation and mirrors `../clojure` and `../python`.
+
+It depends on the TypeScript `once` package for shared `tofu`, `ansible-local`, and Tofu-output parameter extraction, and on `big-config` for workflow/rendering.
 
 ## Commands
 
-The canonical CLI runs through the root Babashka `run` script:
-
 ```bash
-bb run package build                       # Render all stages without applying/provisioning
-bb run package create                      # Full workflow: tofu + ansible + ansible-local
-bb run package delete                      # Destroy the compute Tofu stage
-bb run tofu render                         # Render OpenTofu templates to .dist/
-bb run tofu tofu:init                      # Initialize OpenTofu
-bb run tofu tofu:plan                      # Preview infrastructure changes
-bb run tofu tofu:apply                     # Apply infrastructure
-bb run tofu tofu:destroy                   # Teardown infrastructure
-bb run ansible render                      # Render Ansible playbooks/inventory
-bb run ansible -- ansible-playbook main.yml       # Run Ansible playbook against remote host
-bb run ansible-local -- ansible-playbook main.yml # Run Ansible tasks locally
+npm install
+npm run typecheck
+npm test
+npm run build
+npm run walter -- help
+npm run walter -- package validate
+npm run walter -- package build
+node run package build
 ```
 
-Run tests:
+Individual tools:
+
 ```bash
-clojure -M:test
+npm run walter -- tofu render
+npm run walter -- ansible render -- ansible-playbook main.yml
+npm run walter -- ansible-local render -- ansible-playbook main.yml
 ```
 
-Code maintenance:
-```bash
-clojure-lsp clean-ns
-clojure-lsp format
-```
+Do not run `package create`, `package delete`, `tofu:apply`, or `tofu:destroy` unless explicitly approved.
 
 ## Architecture
 
-The project uses [big-config](https://github.com/bigconfig-ai/big-config) as its workflow engine. The pattern throughout is:
-- `*` suffix functions (e.g. `ansible*`, `walter*`) are CLI/REPL entry points — they parse CLI args and call the non-starred variant
-- Workflows are composed as `step-fns` pipelines using `big-config.workflow`
-- Templates are rendered from `src/resources/` to `.dist/` before being executed
+- `src/cli.ts` — CLI entry point.
+- `src/walter/package.ts` — package workflow: Once `tofu` -> Walter `ansible` -> Once `ansible-local`.
+- `src/walter/tools.ts` — Walter-owned remote Ansible render workflow.
+- `src/walter/ansible.ts` — pure Ansible data and generated YAML/JSON render functions.
+- `src/walter/params.ts` — `BC_PAR_*` overrides + Once Tofu output params.
+- `src/walter/validation.ts` — schema/tool/credential/Ansible-data validation.
 
-**Key namespaces:**
-- `io.github.bigconfig-ai.walter.cli` — `bb run ...` command parser
-- `io.github.bigconfig-ai.walter.package` — top-level `walter` workflow, orchestrates `tofu` → `ansible` → `ansible-local`
-- `io.github.bigconfig-ai.walter.tools` — Walter-specific `ansible` workflow definition
-- `io.github.bigconfig-ai.walter.ansible` — data generation for Ansible: users, packages (devbox), repos, SSH config, inventory
-- `io.github.bigconfig-ai.walter.options` — static config; `bb` is the fallback profile when no `run` profile is supplied
-- `io.github.bigconfig-ai.walter.params` — composes `opts-fn` / `walter-opts` for reading big-config params
+Keep generated `.dist/` out of source and preserve kebab-case parameter keys.
 
-**External dependencies:**
-- `io.github.bigconfig-ai/once` — provides shared `tofu*` and `ansible-local*` tooling
-- `io.github.amiorin/big-config` — workflow engine, template rendering, step functions (pinned to the `bigconfig-ai/big-config` Git repo by URL)
+## Parity
 
-## REPL Development
+`package build` must be byte-for-byte compatible with the Clojure reference artifact under `../clojure/.dist/walter-7b467017/`.
 
-Use `(debug tap-values ...)` in `comment` blocks (as shown in the source files) to inspect intermediate workflow state. Start with `:dev` alias:
+## Git
 
-```bash
-clojure -A:dev
-```
-
-## Configuration
-
-- The root `run` file contains safe placeholder defaults; override real values with `BC_PAR_*` environment variables or an explicit opts map in REPL use.
-- Modify `src/clj/io/github/bigconfig_ai/walter/ansible.clj` (`data-fn`) to change packages, repos, or users provisioned on the remote box.
-- Walter-owned templates live under `src/resources/io/github/bigconfig-ai/walter/tools/`.
-- Requires `HCLOUD_TOKEN` env var for Hetzner Cloud, or OCI CLI configured for Oracle, when using those providers.
-- `.dist/` is generated — do not edit files there directly.
+Stay on the `typescript` branch. Do not commit unless explicitly asked.

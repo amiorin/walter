@@ -1,16 +1,23 @@
-#!/usr/bin/env node
-/** Run the Walter CLI with a local default profile template.
- *
- * This file is copied by bc-pkg into the user's project directory, so keep the
- * profile below user-editable and free of real credentials.
- */
-import { existsSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+/** Walter profiles and the active profile. */
+import type { Opts } from "big-config";
+import { PARAMS, PROFILE, syncAliases } from "./interop.js";
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+export interface Profile {
+  profile?: string;
+  params: Record<string, any>;
+}
 
-const DEFAULT_PROFILE = {
+function compose(...layers: Profile[]): Opts {
+  let params: Record<string, any> = {};
+  let profile: string | undefined;
+  for (const layer of layers) {
+    if (layer.profile !== undefined) profile = layer.profile;
+    params = { ...params, ...layer.params };
+  }
+  return syncAliases({ [PROFILE]: profile, [PARAMS]: params });
+}
+
+const base: Profile = {
   profile: "walter",
   params: {
     package: "walter",
@@ -55,8 +62,5 @@ const DEFAULT_PROFILE = {
   },
 };
 
-const localCli = join(ROOT, "dist", "src", "cli.js");
-const cliModule = existsSync(localCli) ? pathToFileURL(localCli).href : "walter/dist/src/cli.js";
-const { main } = await import(cliModule);
-
-main(process.argv.slice(2), DEFAULT_PROFILE);
+export const walter: Opts = compose(base);
+export const bb: Opts = walter;

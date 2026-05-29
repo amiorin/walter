@@ -1,0 +1,30 @@
+{
+  "name": "walter",
+  "version": "1.0.0",
+  "description": "Provision and configure cloud development workstations with OpenTofu and Ansible.",
+  "type": "module",
+  "bin": {
+    "walter": "./dist/src/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "walter": "tsx src/cli.ts",
+    "validate": "tsx src/cli.ts package validate"
+  },
+  "dependencies": {
+    "big-config": "github:bigconfig-ai/big-config#1e96db51d3333580930ecdda57eb9d611cffb76b",
+    "once": "github:bigconfig-ai/once#a5f3d7e3c64a94d6a41822e1932a45b7dd525cc8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
