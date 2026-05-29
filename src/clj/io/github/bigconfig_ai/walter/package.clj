@@ -9,7 +9,8 @@
    [io.github.bigconfig-ai.once.tools :as tools-once]
    [io.github.bigconfig-ai.walter.options :as options]
    [io.github.bigconfig-ai.walter.params :as params]
-   [io.github.bigconfig-ai.walter.tools :as tools-walter]))
+   [io.github.bigconfig-ai.walter.tools :as tools-walter]
+   [io.github.bigconfig-ai.walter.validation :as validation]))
 
 (def step-fns [workflow/print-step-fn
                (step-fns/->exit-step-fn ::end)
@@ -60,7 +61,8 @@
   (let [opts (->> opts
                   (merge {::workflow/create-fn create
                           ::workflow/build-fn build
-                          ::workflow/delete-fn delete})
+                          ::workflow/delete-fn delete
+                          ::workflow/validate-fn validation/validate})
                   (workflow/merge-params [::tools-once/tofu-opts
                                           ::tools-walter/ansible-opts
                                           ::tools-once/ansible-local-opts]

@@ -24,6 +24,7 @@ The root `run` script contains safe placeholder defaults. Override parameters wi
 
 ```bash
 export BC_PAR_PROVIDER_COMPUTE=no-infra
+export BC_PAR_COMPUTE_PUBKEY="$(cat ~/.ssh/id_ed25519.pub)"
 export BC_PAR_NO_INFRA_COMPUTE_IP=203.0.113.10
 export BC_PAR_NO_INFRA_COMPUTE_USER=ubuntu
 export BC_PAR_NO_INFRA_COMPUTE_SUDOER=root
@@ -32,9 +33,10 @@ export BC_PAR_NO_INFRA_COMPUTE_SUDOER=root
 ### Package workflow
 
 ```bash
-bb run package build   # render all stages without applying/provisioning
-bb run package create  # tofu -> ansible -> ansible-local
-bb run package delete  # destroy the compute Tofu stage
+bb run package validate # validate params, tools, credentials, and Ansible data
+bb run package build    # render all stages without applying/provisioning
+bb run package create   # tofu -> ansible -> ansible-local
+bb run package delete   # destroy the compute Tofu stage
 ```
 
 ### Individual tools

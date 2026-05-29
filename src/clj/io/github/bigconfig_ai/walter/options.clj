@@ -20,7 +20,9 @@
                                       :s3-bucket "tf-state-251213589273-eu-west-1"
                                       :s3-region "eu-west-1"}})
 
-(def walter (merge-with merge oci s3
+(def ^:private ssh {::workflow/params {:compute-pubkey "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHDKdUkY+SfRm6ttOz2EEZ2+i/zm+o1mpMOdMeGUr0t4 32617+amiorin@users.noreply.github.com"}})
+
+(def walter (merge-with merge oci s3 ssh
                         {::render/profile "walter"
                          ::workflow/params {:package "walter"}}))
 

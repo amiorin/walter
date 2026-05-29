@@ -10,7 +10,8 @@
   "Usage: bb run <command> [args...]
 
 Commands:
-  package <step>...       Build, provision, or tear down Walter infrastructure.
+  package <step>...       Validate, build, provision, or tear down Walter infrastructure.
+                            bb run package validate
                             bb run package build
                             bb run package create
                             bb run package delete
@@ -25,7 +26,7 @@ Notes:
     otherwise it defaults to `bb` in io.github.bigconfig-ai.walter.options.
   * Any param can be overridden with BC_PAR_* environment variables.")
 
-(def package-commands #{"build" "create" "delete"})
+(def package-commands #{"validate" "build" "create" "delete"})
 
 (defn- die!
   [& lines]
@@ -49,7 +50,7 @@ Notes:
        (if (seq rest-args)
          (package/walter* rest-args opts)
          (die! "Missing package step."
-               "Usage: bb run package <build|create|delete>..."))
+               "Usage: bb run package <validate|build|create|delete>..."))
 
        (contains? package-commands command)
        (die! (str "Use `bb run package " command "`.") "" help-text)

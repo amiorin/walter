@@ -3,7 +3,7 @@
    [cheshire.core :as json]
    [clj-yaml.core :as yaml]))
 
-(defn data-fn [{:keys [ip sudoer uid] :as data} _]
+(defn data-fn [{:keys [compute-pubkey ip sudoer uid] :as data} _]
   (let [sudoer (or sudoer "root")
         main-user "ubuntu"
         hosts [(or ip "77.42.91.213")]
@@ -14,7 +14,7 @@
         config {:users (filter (complement :remove) users)
                 :remove_users (filter :remove users)
                 :atuin_login "{{ lookup('ansible.builtin.env', 'ATUIN_LOGIN') }}"
-                :ssh_key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHDKdUkY+SfRm6ttOz2EEZ2+i/zm+o1mpMOdMeGUr0t4 32617+amiorin@users.noreply.github.com"}
+                :ssh_key (or compute-pubkey "REPLACE_ME")}
         repos (-> (into [] (for [[repo worktrees] [["dotfiles-v3" []]
                                                    ["albertomiorin.com" ["albertomiorin"]]
                                                    ["big-container" []]
