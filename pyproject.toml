@@ -1,0 +1,36 @@
+[project]
+name = "walter"
+version = "1.0.0"
+description = "Provision and configure cloud development workstations with OpenTofu and Ansible."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "big-config @ git+https://github.com/bigconfig-ai/big-config.git@13abf2fc3d4b9749ae2f38d0d680e8dc902c5473",
+  "once @ git+https://github.com/bigconfig-ai/once.git@ae2fc64456506a1f8fb42dc1a93aacc71e06b3f5",
+]
+
+[project.scripts]
+walter = "walter.cli:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/walter"]
+force-include = { "src/resources" = "src/resources" }
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "pyproject.toml", "README.md", "run"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

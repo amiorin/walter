@@ -1,44 +1,27 @@
-#!/usr/bin/env python3
-"""Run the Walter CLI with a local default profile template.
-
-This file is copied by bc-pkg into the user's project directory, so keep the
-profile below user-editable and free of real credentials.
-"""
+"""Walter profiles and the active profile."""
 from __future__ import annotations
 
-import site
-import sys
-from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parent
+from big_config.core import Opts
+
+from .interop import PARAMS, PROFILE, sync_aliases
+
+Profile = dict[str, Any]
 
 
-def add_site_dir_first(path: Path) -> None:
-    before = list(sys.path)
-    site.addsitedir(str(path))
-    added = [p for p in sys.path if p not in before]
-    if str(path) in sys.path and str(path) not in added:
-        added.insert(0, str(path))
-    for p in reversed(added):
-        sys.path.remove(p)
-        sys.path.insert(0, p)
+def compose(*layers: Profile) -> Opts:
+    """Compose layers like Clojure's ``merge-with merge``: params merge shallowly."""
+    params: dict[str, Any] = {}
+    profile: str | None = None
+    for layer in layers:
+        if "profile" in layer:
+            profile = layer["profile"]
+        params = {**params, **(layer.get("params") or {})}
+    return sync_aliases({PROFILE: profile, PARAMS: params})
 
 
-for site_packages in [
-    *sorted((ROOT / ".venv" / "lib").glob("python*/site-packages"), reverse=True),
-    ROOT / ".venv" / "Lib" / "site-packages",
-]:
-    if site_packages.is_dir():
-        add_site_dir_first(site_packages)
-
-SRC = ROOT / "src"
-if SRC.is_dir():
-    sys.path.insert(0, str(SRC))
-
-from walter.cli import main  # noqa: E402
-
-DEFAULT_PROFILE: dict[str, Any] = {
+base: Profile = {
     "profile": "walter",
     "params": {
         "package": "walter",
@@ -83,6 +66,5 @@ DEFAULT_PROFILE: dict[str, Any] = {
     },
 }
 
-
-if __name__ == "__main__":
-    main(sys.argv[1:], DEFAULT_PROFILE)
+walter: Opts = compose(base)
+bb: Opts = walter

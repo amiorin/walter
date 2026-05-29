@@ -3,11 +3,11 @@
 !.envrc
 !.envrc.private.example
 !.dir-locals.el
+!.github
 
-/.clj-kondo/*
-!/.clj-kondo
-!/.clj-kondo/config.edn
-
-/.lsp/*
-!/.lsp
-!/.lsp/config.edn
+__pycache__/
+*.py[cod]
+.venv/
+.devenv/
+.dist/
+/resources
