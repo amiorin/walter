@@ -1,17 +1,14 @@
 # Walter
 
-Walter is an infrastructure automation tool designed to provision cloud instances and configure them as a personalized development environment. It combines the power of **OpenTofu** (for infrastructure) and **Ansible** (for configuration), all orchestrated through **Clojure** and **Babashka**.
-
-The primary goal of Walter is to automate the setup of a consistent, high-productivity development environment on cloud providers like **Hetzner Cloud (hcloud)** and **Oracle Cloud Infrastructure (OCI)**.
+Walter provisions cloud instances (or targets an existing host) and configures them as a personalized development environment. It combines **OpenTofu** for infrastructure and **Ansible** for configuration, orchestrated through **Clojure** and **Babashka** on top of [big-config](https://github.com/bigconfig-ai/big-config).
 
 ## Features
 
-- **Infrastructure as Code (IaC):** Provision cloud resources using OpenTofu templates.
-- **Automated Configuration:** Set up users, SSH keys, and system settings using Ansible roles.
-- **Developer Tooling:** Automatically install common development tools via `devbox` (Nix-based package manager).
-- **Project Setup:** Clone your Git repositories and configure multiple worktrees automatically.
-- **Personalized Environment:** Built-in support for tools like Emacs (Doom Emacs), Zellij, Fish, Atuin, and more.
-- **Orchestrated Workflow:** Single-command execution to go from nothing to a fully working cloud development box.
+- Provision compute using the shared Once OpenTofu templates.
+- Configure users, SSH, shell tooling, and system services through Walter-specific Ansible roles.
+- Install common development tools through `devbox`.
+- Clone and prepare project repositories/worktrees.
+- Run the whole lifecycle through a launcher-friendly `bb run ...` CLI.
 
 ## Prerequisites
 
@@ -19,61 +16,54 @@ The primary goal of Walter is to automate the setup of a consistent, high-produc
 - [Clojure](https://clojure.org/)
 - [OpenTofu](https://opentofu.org/)
 - [Ansible](https://www.ansible.com/)
-- [Devbox](https://github.com/jetpack-io/devbox) (used on the target instance)
-- [devenv](https://devenv.sh/) (optional, for setting up the local development environment)
+- Cloud credentials for the selected provider, or existing host details for `no-infra`
 
-## Getting Started
+## Usage
 
-### 1. Configuration
+The root `run` script contains safe placeholder defaults. Override parameters with `BC_PAR_*` environment variables, for example:
 
-Walter uses [big-config](https://github.com/amiorin/big-config) for managing its configuration and templates. 
+```bash
+export BC_PAR_PROVIDER_COMPUTE=no-infra
+export BC_PAR_NO_INFRA_COMPUTE_IP=203.0.113.10
+export BC_PAR_NO_INFRA_COMPUTE_USER=ubuntu
+export BC_PAR_NO_INFRA_COMPUTE_SUDOER=root
+```
 
-You may need to set environment variables or provide configuration values for your hyperscalers:
-- `HCLOUD_TOKEN` for Hetzner Cloud.
-- OCI configuration (e.g., via `oci-cli`) for Oracle Cloud.
+### Package workflow
 
-### 2. Available Commands
+```bash
+bb run package build   # render all stages without applying/provisioning
+bb run package create  # tofu -> ansible -> ansible-local
+bb run package delete  # destroy the compute Tofu stage
+```
 
-Walter uses Babashka (`bb`) to expose its functionality:
+### Individual tools
 
-- **Full Workflow:**
-  ```bash
-  bb walter create
-  ```
-  This command performs a full "create" cycle: it renders OpenTofu templates, initializes and applies the infrastructure, then renders Ansible playbooks and executes them against the newly created instance.
+```bash
+bb run tofu render
+bb run tofu tofu:init
+bb run tofu tofu:plan
+bb run tofu tofu:apply
+bb run tofu tofu:destroy
 
-- **OpenTofu Tasks:**
-  ```bash
-  bb tofu render                  # Render templates to .dist/
-  bb tofu tofu:init               # Initialize OpenTofu
-  bb tofu tofu:plan               # Preview changes
-  bb tofu tofu:apply              # Apply infrastructure changes
-  bb tofu tofu:destroy            # Teardown infrastructure
-  ```
+bb run ansible render
+bb run ansible -- ansible-playbook main.yml
 
-- **Ansible Tasks:**
-  ```bash
-  bb ansible render                          # Render Ansible playbooks and inventories
-  bb ansible ansible-playbook:main.yml       # Run the Ansible playbook
-  bb ansible-local ansible-playbook:main.yml # Run Ansible tasks locally
-  ```
+bb run ansible-local render
+bb run ansible-local -- ansible-playbook main.yml
+```
 
-### 3. Customization
+## Customization
 
-The configuration logic is primarily located in:
-- `src/clj/io/github/amiorin/walter/ansible.clj`: Defines users, packages, and repositories.
-- `src/resources/io/github/amiorin/walter/tools/`: Contains OpenTofu and Ansible templates.
+- `src/clj/io/github/bigconfig_ai/walter/ansible.clj` defines users, packages, repositories, SSH config, and generated Ansible data.
+- `src/clj/io/github/bigconfig_ai/walter/options.clj` contains the fallback profile used when no profile is supplied by `run`.
+- `src/resources/io/github/bigconfig-ai/walter/tools/` contains Walter-owned templates and Ansible roles.
 
-You can modify `ansible.clj` to change the list of default packages or the repositories you want to clone.
+`.dist/` is generated output and should not be edited directly.
 
-## Project Structure
+## Launcher
 
-- `src/clj/`: Clojure source code for orchestration logic.
-- `src/resources/`: OpenTofu and Ansible templates and roles.
-- `env/`: Development environment setup.
-- `.dist/`: (Generated) Temporary directory for rendered configuration files and tool state.
-- `bb.edn`: Task definitions for Babashka.
-- `deps.edn`: Clojure dependencies.
+Walter is shaped as a Clojure BigConfig package and is intended to be consumable with `bc-pkg` from `bigconfig-ai/walter@clojure`.
 
 ## License
 

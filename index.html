@@ -390,7 +390,7 @@
 <body>
 <div class="layout">
   <aside>
-    <a href="https://github.com/amiorin/walter" class="brand">← walter</a>
+    <a href="https://github.com/bigconfig-ai/walter" class="brand">← walter</a>
     <div class="tag">manual · v1</div>
     <nav>
       <div class="group">Get Started</div>
@@ -409,10 +409,10 @@
 
       <div class="group">CLI Reference</div>
       <ul>
-        <li><a href="#cmd-walter">bb walter</a></li>
-        <li><a href="#cmd-tofu">bb tofu</a></li>
-        <li><a href="#cmd-ansible">bb ansible</a></li>
-        <li><a href="#cmd-ansible-local">bb ansible-local</a></li>
+        <li><a href="#cmd-walter">bb run package</a></li>
+        <li><a href="#cmd-tofu">bb run tofu</a></li>
+        <li><a href="#cmd-ansible">bb run ansible</a></li>
+        <li><a href="#cmd-ansible-local">bb run ansible-local</a></li>
         <li><a href="#cmd-misc">Tidy &amp; test</a></li>
       </ul>
 
@@ -479,7 +479,7 @@
       <li>Optionally update local SSH config so the host is reachable by name.</li>
     </ol>
 
-    <p>All three steps are composed as a single <code>big-config</code> workflow. You can run the whole thing with <code>bb walter create</code>, or invoke each stage individually for debugging.</p>
+    <p>All three steps are composed as a single <code>big-config</code> workflow. You can run the whole thing with <code>bb run package create</code>, or invoke each stage individually for debugging.</p>
 
     <div class="grid">
       <div class="card">
@@ -488,7 +488,7 @@
       </div>
       <div class="card">
         <h4>Why Babashka?</h4>
-        <p>Sub-second start-up. <code>bb</code> tasks feel like make targets but compose like Clojure functions.</p>
+        <p>Sub-second start-up. The <code>bb run</code> CLI feels like make targets but composes like Clojure functions.</p>
       </div>
       <div class="card">
         <h4>Why OpenTofu?</h4>
@@ -508,7 +508,7 @@
     <p>Assuming Babashka, OpenTofu and Ansible are already on your PATH (see <a href="#prereqs">Prerequisites</a>):</p>
 
 <pre><code><span class="com"># 1. Clone and enter the repo</span>
-git clone https://github.com/amiorin/walter
+git clone https://github.com/bigconfig-ai/walter
 cd walter
 
 <span class="com"># 2. Drop your secrets into .envrc.private (see .envrc.private.example)</span>
@@ -520,13 +520,13 @@ $EDITOR .envrc.private
 <span class="com">#    Hetzner: export HCLOUD_TOKEN=... (or set BC_PAR_HCLOUD_TOKEN)</span>
 
 <span class="com"># 4. Provision and configure end-to-end</span>
-bb walter create</code></pre>
+bb run package create</code></pre>
 
     <p>That last command takes about 10–20 minutes on a fresh box. When it returns, the VM is reachable over Tailscale and Doom Emacs is compiled.</p>
 
     <div class="note">
       <span class="label">Note</span>
-      Walter is configured for the author&rsquo;s personal setup out of the box (his SSH key, his repos, his OCI tenancy). Forking and editing <code>src/clj/io/github/amiorin/walter/ansible.clj</code> and <code>bb.edn</code> is the expected path before first run — see <a href="#customization">Customization</a>.
+      The root <code>run</code> file uses safe placeholder defaults. Set real values with <code>BC_PAR_*</code> environment variables and edit <code>src/clj/io/github/bigconfig_ai/walter/ansible.clj</code> for your users, packages, and repositories — see <a href="#customization">Customization</a>.
     </div>
   </section>
 
@@ -537,7 +537,7 @@ bb walter create</code></pre>
     <table>
       <thead><tr><th>Tool</th><th>Why</th><th>Install hint</th></tr></thead>
       <tbody>
-        <tr><td><a href="https://babashka.org/">Babashka</a> (<code>bb</code>)</td><td>Runs <code>bb.edn</code> tasks</td><td><code>brew install borkdude/brew/babashka</code></td></tr>
+        <tr><td><a href="https://babashka.org/">Babashka</a> (<code>bb</code>)</td><td>Runs the root <code>run</code> script</td><td><code>brew install borkdude/brew/babashka</code></td></tr>
         <tr><td><a href="https://clojure.org/">Clojure CLI</a></td><td>Runs the test alias and REPL</td><td><code>brew install clojure/tools/clojure</code></td></tr>
         <tr><td><a href="https://opentofu.org/">OpenTofu</a> (<code>tofu</code>)</td><td>Provisions the VM</td><td><code>brew install opentofu</code></td></tr>
         <tr><td><a href="https://www.ansible.com/">Ansible</a></td><td>Configures the VM</td><td><code>brew install ansible</code></td></tr>
@@ -563,8 +563,8 @@ packages = [ pkgs.jet pkgs.hcl2json pkgs.awscli2 pkgs.oci-cli ];</code></pre>
 
     <p>Walter reads its configuration from three sources, in order of override:</p>
     <ol>
-      <li><strong>Static defaults</strong> — <code>src/clj/io/github/amiorin/walter/options.clj</code></li>
-      <li><strong>Per-invocation overrides</strong> — <code>bb.edn</code> <code>:init</code> block (binds <code>bb</code>)</li>
+      <li><strong>Static defaults</strong> — <code>src/clj/io/github/bigconfig_ai/walter/options.clj</code></li>
+      <li><strong>Run profile defaults</strong> — the root <code>run</code> script passes a placeholder profile</li>
       <li><strong>Environment variables</strong> — read by <code>big-config</code> as <code>BC_PAR_*</code></li>
     </ol>
 
@@ -575,16 +575,16 @@ packages = [ pkgs.jet pkgs.hcl2json pkgs.awscli2 pkgs.oci-cli ];</code></pre>
 <span class="kw">export</span> BC_PAR_DO_TOKEN=...                                          <span class="com"># DigitalOcean (reserved; not used by current providers)</span>
 <span class="kw">export</span> ATUIN_LOGIN=<span class="str">"atuin login -u amiorin -p ... -k '...'"</span>   <span class="com"># injected verbatim into the Ansible run</span></code></pre>
 
-    <p>The <code>BC_PAR_</code> prefix is consumed by <code>big-config</code> and exposed in Clojure as the <code>:io.github.amiorin.walter/&hellip;</code> params map. The <code>ATUIN_LOGIN</code> variable is looked up at Ansible run-time inside the user role to seed Atuin shell history sync.</p>
+    <p>The <code>BC_PAR_</code> prefix is consumed by <code>big-config</code> and exposed in Clojure as the <code>:io.github.bigconfig-ai.walter/&hellip;</code> params map. The <code>ATUIN_LOGIN</code> variable is looked up at Ansible run-time inside the user role to seed Atuin shell history sync.</p>
   </section>
 
   <!-- ============================================================ -->
   <section id="config-oci">
     <h2>OCI parameters</h2>
 
-    <p>The live OCI configuration is the <code>:init</code> block in <code>bb.edn</code> — it overrides the defaults in <code>options.clj</code>:</p>
+    <p>Set live OCI values with <code>BC_PAR_*</code> environment variables or by editing the placeholder profile in the root <code>run</code> script:</p>
 
-<pre><code><span class="com">;; bb.edn :init  →  bb is the canonical options map</span>
+<pre><code><span class="com">;; run default-profile → overridden by BC_PAR_*</span>
 {:big-config.render/profile <span class="str">"walter"</span>
  :big-config.workflow/params {:provider-compute <span class="str">"oci"</span>
                               :oci-config-file-profile <span class="str">"DEFAULT"</span>
@@ -628,7 +628,7 @@ packages = [ pkgs.jet pkgs.hcl2json pkgs.awscli2 pkgs.oci-cli ];</code></pre>
 
     <p>The Hetzner template is simpler — it expects only <code>BC_PAR_HCLOUD_TOKEN</code> and the SSH key alias already registered in your Hetzner project:</p>
 
-<pre><code><span class="com"># src/resources/io/github/amiorin/walter/tools/tofu/hcloud/main.tf</span>
+<pre><code><span class="com"># src/resources/io/github/bigconfig-ai/walter/tools/tofu/hcloud/main.tf</span>
 resource <span class="str">"hcloud_server"</span> <span class="str">"node1"</span> {
   name        = <span class="str">"node1-{{ profile }}"</span>
   image       = <span class="str">"ubuntu-24.04"</span>
@@ -638,60 +638,61 @@ resource <span class="str">"hcloud_server"</span> <span class="str">"node1"</spa
   &hellip;
 }</code></pre>
 
-    <p>To switch hyperscaler, change <code>:provider-compute</code> in the <code>bb.edn</code> <code>:init</code> block from <code>"oci"</code> to <code>"hcloud"</code>. The <code>tofu</code> template tree is selected by that key.</p>
+    <p>To switch hyperscaler, set <code>BC_PAR_PROVIDER_COMPUTE=hcloud</code> (or edit <code>:provider-compute</code> in <code>run</code>). The <code>tofu</code> template tree is selected by that key.</p>
   </section>
 
   <!-- ============================================================ -->
   <section id="cmd-walter">
-    <h2><code>bb walter</code></h2>
+    <h2><code>bb run package</code></h2>
 
     <p>The top-level orchestration. Internally a workflow with two steps wired up: <code>::start</code> &rarr; <code>::end</code>, where the inner pipeline runs OpenTofu, then Ansible, then ansible-local.</p>
 
-<pre><code>bb walter create        <span class="com"># tofu render+init+apply → ansible render+playbook → ansible-local render+playbook</span>
-bb walter delete        <span class="com"># tofu render+init+destroy (skips ansible)</span></code></pre>
+<pre><code>bb run package build         <span class="com"># render all stages without applying/provisioning</span>
+bb run package create        <span class="com"># tofu render+init+apply → ansible render+playbook → ansible-local render+playbook</span>
+bb run package delete        <span class="com"># tofu render+init+destroy (skips ansible)</span></code></pre>
 
-    <p>All commands are Babashka tasks defined in <code>bb.edn</code>. Each one has a <em>starred</em> Clojure variant (e.g. <code>walter*</code>) that parses CLI args and a non-starred core variant invoked from the REPL.</p>
+    <p>All commands go through the root Babashka <code>run</code> script. Each command delegates to a <em>starred</em> Clojure variant (e.g. <code>walter*</code>) that parses CLI args and a non-starred core variant invoked from the REPL.</p>
   </section>
 
   <!-- ============================================================ -->
   <section id="cmd-tofu">
-    <h2><code>bb tofu</code></h2>
+    <h2><code>bb run tofu</code></h2>
 
-    <p>Direct access to the OpenTofu stage. Tasks are colon-prefixed; pass them as args:</p>
+    <p>Direct access to the OpenTofu stage. Steps are colon-prefixed; pass them as args:</p>
 
-<pre><code>bb tofu render                        <span class="com"># render templates to .dist/walter-&lt;hash&gt;/</span>
-bb tofu tofu:init                     <span class="com"># initialize backend &amp; providers</span>
-bb tofu lock                          <span class="com"># tofu providers lock for cross-platform</span>
-bb tofu tofu:plan                     <span class="com"># dry-run changes</span>
-bb tofu tofu:apply                    <span class="com"># prompt-confirmed apply</span>
-bb tofu tofu:apply:-auto-approve      <span class="com"># used by 'bb walter create'</span>
-bb tofu tofu:destroy                  <span class="com"># teardown</span>
-bb tofu tofu:destroy:-auto-approve    <span class="com"># used by 'bb walter delete'</span></code></pre>
+<pre><code>bb run tofu render                        <span class="com"># render templates to .dist/walter-&lt;hash&gt;/</span>
+bb run tofu tofu:init                     <span class="com"># initialize backend &amp; providers</span>
+bb run tofu lock                          <span class="com"># tofu providers lock for cross-platform</span>
+bb run tofu tofu:plan                     <span class="com"># dry-run changes</span>
+bb run tofu tofu:apply                    <span class="com"># prompt-confirmed apply</span>
+bb run tofu tofu:apply:-auto-approve      <span class="com"># used by 'bb run package create'</span>
+bb run tofu tofu:destroy                  <span class="com"># teardown</span>
+bb run tofu tofu:destroy:-auto-approve    <span class="com"># used by 'bb run package delete'</span></code></pre>
 
-    <p>You can chain tasks in one invocation; they share a single rendered tree:</p>
+    <p>You can chain steps in one invocation; they share a single rendered tree:</p>
 
-<pre><code>bb tofu render tofu:init tofu:plan</code></pre>
+<pre><code>bb run tofu render tofu:init tofu:plan</code></pre>
   </section>
 
   <!-- ============================================================ -->
   <section id="cmd-ansible">
-    <h2><code>bb ansible</code></h2>
+    <h2><code>bb run ansible</code></h2>
 
     <p>Ansible against the <em>remote</em> host. Reads <code>params</code> output by the OpenTofu stage (public IP, sudoer, uid) and templates them into the inventory.</p>
 
-<pre><code>bb ansible render                          <span class="com"># render playbooks + roles + inventory.json to .dist/default-&lt;hash&gt;/</span>
-bb ansible ansible-playbook:main.yml       <span class="com"># run main.yml against admin+users hosts</span></code></pre>
+<pre><code>bb run ansible render                          <span class="com"># render playbooks + roles + inventory.json to .dist/default-&lt;hash&gt;/</span>
+bb run ansible ansible-playbook:main.yml       <span class="com"># run main.yml against admin+users hosts</span></code></pre>
 
     <p>The rendered tree contains <code>main.yml</code>, <code>ansible.cfg</code>, <code>inventory.json</code>, <code>default.config.yml</code>, and the two roles (<code>root</code>, <code>users</code>).</p>
   </section>
 
   <!-- ============================================================ -->
   <section id="cmd-ansible-local">
-    <h2><code>bb ansible-local</code></h2>
+    <h2><code>bb run ansible-local</code></h2>
 
     <p>Same set of playbooks executed on <em>your</em> machine — used today to update your local <code>~/.ssh/config</code> with a Host entry pointing at the new VM&rsquo;s Tailscale hostname:</p>
 
-<pre><code>bb ansible-local ansible-playbook:main.yml</code></pre>
+<pre><code>bb run ansible-local ansible-playbook:main.yml</code></pre>
 
     <p>After this runs you can <code>ssh walter</code> (or whatever <code>:oci-display-name</code> resolves to) and land on the box over Tailscale.</p>
   </section>
@@ -709,7 +710,7 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
   <section id="workflow">
     <h2>The <code>create</code> workflow</h2>
 
-    <p><code>bb walter create</code> resolves to <code>io.github.amiorin.walter.package/walter*</code>, which builds a top-level <code>core/-&gt;workflow</code> with the inner <code>create</code> pipeline as the body of <code>::start</code>:</p>
+    <p><code>bb run package create</code> resolves to <code>io.github.bigconfig-ai.walter.package/walter*</code>, which builds a top-level <code>core/-&gt;workflow</code> with the inner <code>create</code> pipeline as the body of <code>::start</code>:</p>
 
     <div class="pipeline">
       <div class="stage"><span class="n">1</span><div class="label">tofu</div><div class="sub">provision VM</div></div>
@@ -726,7 +727,7 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
     <ul>
       <li>params from the previous step&rsquo;s outputs (e.g. the VM&rsquo;s public IP from the <code>tofu</code> step),</li>
       <li>plus the <code>BC_PAR_*</code> env vars,</li>
-      <li>plus the static <code>bb</code> options.</li>
+      <li>plus the active profile options supplied by <code>run</code>.</li>
     </ul>
 
     <p>This is what lets the Ansible step <em>discover</em> the new VM&rsquo;s IP without you typing it.</p>
@@ -742,7 +743,7 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
         <tr><td><code>walter.package</code></td><td>Top-level <code>walter*</code> workflow. Wires <code>create</code> / <code>delete</code> pipelines and the outer step-fns (print, exit, error).</td></tr>
         <tr><td><code>walter.tools</code></td><td>The <code>ansible</code> workflow definition: renders the playbook tree, the inventory, packages.yml, repos.yml, ssh-config.yml, default.config.yml.</td></tr>
         <tr><td><code>walter.ansible</code></td><td>Pure data layer. <code>data-fn</code> produces users/repos/packages/SSH config. <code>render</code> emits YAML/JSON for each Ansible artifact.</td></tr>
-        <tr><td><code>walter.options</code></td><td>Static defaults: the <code>oci</code> map, the <code>s3</code> backend map, the merged <code>walter</code> opts. <code>bb</code> is an alias for <code>walter</code>.</td></tr>
+        <tr><td><code>walter.options</code></td><td>Fallback profile defaults used when no profile is supplied by <code>run</code>.</td></tr>
         <tr><td><code>walter.params</code></td><td>Tiny composition: <code>opts-fn</code> and <code>walter-opts</code> — the entry points into <code>big-config</code>&rsquo;s param machinery.</td></tr>
       </tbody>
     </table>
@@ -757,7 +758,7 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
   <section id="arch-bigconfig">
     <h2>big-config workflow engine</h2>
 
-    <p>Walter doesn&rsquo;t reinvent orchestration; it leans on the sibling library <a href="https://github.com/amiorin/big-config">big-config</a>. The engine provides:</p>
+    <p>Walter doesn&rsquo;t reinvent orchestration; it leans on the sibling library <a href="https://github.com/bigconfig-ai/big-config">big-config</a>. The engine provides:</p>
     <ul>
       <li><code>core/-&gt;workflow</code> — build a state machine where each <em>step</em> is a node with a transition table.</li>
       <li><code>workflow/-&gt;workflow*</code> — build a <em>pipeline</em>: an ordered list of <code>[step-keyword [args opts-fn]]</code> tuples that runs each step in turn.</li>
@@ -767,14 +768,14 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
       <li><code>workflow/parse-args</code> — parses Babashka CLI args into the opts map.</li>
     </ul>
 
-    <p>The companion library <a href="https://github.com/amiorin/once">once</a> ships the reusable <code>tofu*</code> and <code>ansible-local*</code> tasks. Walter only owns its own <code>ansible*</code> task because the remote Ansible step needs Walter-specific transforms (packages.yml, repos.yml, ssh-config.yml from <code>data-fn</code>).</p>
+    <p>The companion library <a href="https://github.com/bigconfig-ai/once">once</a> ships the reusable <code>tofu*</code> and <code>ansible-local*</code> tooling. Walter only owns its own <code>ansible*</code> tool because the remote Ansible step needs Walter-specific transforms (packages.yml, repos.yml, ssh-config.yml from <code>data-fn</code>).</p>
   </section>
 
   <!-- ============================================================ -->
   <section id="arch-rendering">
     <h2>Template rendering</h2>
 
-    <p>Templates live under <code>src/resources/io/github/amiorin/walter/tools/&lt;tool&gt;</code>. Rendering happens via <code>big-config.render</code>:</p>
+    <p>Templates live under <code>src/resources/io/github/bigconfig-ai/walter/tools/&lt;tool&gt;</code>. Rendering happens via <code>big-config.render</code>:</p>
 
 <pre><code><span class="com">;; from walter.tools/ansible</span>
 (workflow/prepare
@@ -956,7 +957,7 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
 
     <div class="note warn">
       <span class="label">Requires SSH agent</span>
-      The clone step runs over SSH and needs your local key forwarded into the VM. Confirm <code>ssh-add -l</code> on your laptop before <code>bb walter create</code>, and that <code>ForwardAgent yes</code> is honoured for the OpenTofu provisioner — see <code>ansible.cfg</code> and <code>ssh-agent.sh</code>.
+      The clone step runs over SSH and needs your local key forwarded into the VM. Confirm <code>ssh-add -l</code> on your laptop before <code>bb run package create</code>, and that <code>ForwardAgent yes</code> is honoured for the OpenTofu provisioner — see <code>ansible.cfg</code> and <code>ssh-agent.sh</code>.
     </div>
   </section>
 
@@ -968,7 +969,7 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
 
     <div class="grid">
       <div class="card">
-        <h4><code>bb.edn</code> :init block</h4>
+        <h4><code>run</code> profile / <code>BC_PAR_*</code></h4>
         <p>OCI shape, region, compartment, SSH key, S3 backend, hyperscaler choice (<code>:provider-compute</code>).</p>
       </div>
       <div class="card">
@@ -994,10 +995,10 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
 
     <h3>Switch to Hetzner</h3>
     <ol>
-      <li>Edit <code>bb.edn</code> <code>:init</code> block: set <code>:provider-compute "hcloud"</code>, remove the OCI keys.</li>
+      <li>Set <code>BC_PAR_PROVIDER_COMPUTE=hcloud</code> (or edit <code>:provider-compute "hcloud"</code> in <code>run</code>) and provide the hcloud keys.</li>
       <li>Export <code>BC_PAR_HCLOUD_TOKEN</code> (or put it in <code>.envrc.private</code>).</li>
       <li>Register your SSH public key in the Hetzner project; update <code>ssh_keys</code> in <code>tofu/hcloud/main.tf</code> to match the key&rsquo;s alias.</li>
-      <li><code>bb walter create</code>.</li>
+      <li><code>bb run package create</code>.</li>
     </ol>
 
     <h3>Resize the OCI VM</h3>
@@ -1007,7 +1008,7 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
 :oci-memory-in-gbs <span class="num">24</span>
 :oci-boot-volume-size-in-gbs <span class="num">200</span></code></pre>
 
-    <p>Then <code>bb tofu render tofu:plan</code> to preview, <code>bb tofu tofu:apply</code> to commit. OpenTofu can resize Flex shapes in place — no destroy needed.</p>
+    <p>Then <code>bb run tofu render tofu:plan</code> to preview, <code>bb run tofu tofu:apply</code> to commit. OpenTofu can resize Flex shapes in place — no destroy needed.</p>
 
     <h3>Pin a new Doom Emacs commit</h3>
     <p>The pin lives in the user record, not in a YAML var:</p>
@@ -1031,10 +1032,10 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
     <p>Check <code>~/.oci/config</code> exists and has a <code>[DEFAULT]</code> profile (matches <code>:oci-config-file-profile</code>). Test with <code>oci os ns get</code>. If you use the OCI CLI Docker image, you&rsquo;ll need to bind-mount the config in.</p>
 
     <h3>S3 backend errors</h3>
-    <p>The configured bucket (<code>tf-state-251213589273-eu-west-1</code>) is the author&rsquo;s. You must change it or you&rsquo;ll see <code>AccessDenied</code>. Update <code>:s3-bucket</code> + <code>:s3-region</code> in <code>bb.edn</code>, and make sure your local AWS creds can write there.</p>
+    <p>If you use the S3 backend, set your own <code>BC_PAR_S3_BUCKET</code> and <code>BC_PAR_S3_REGION</code>, and make sure your local AWS creds can write there.</p>
 
     <h3>Ansible can&rsquo;t SSH to the new VM</h3>
-    <p>The OpenTofu template includes a <code>remote-exec</code> provisioner running <code>ls</code> — its job is to block until the SSH port is up. If that step succeeded but Ansible still times out, suspect: (a) wrong <code>sudoer</code> user (OCI is <code>ubuntu</code>, Hetzner Cloud is <code>root</code>); (b) the public IP changed between tofu and ansible — re-render with <code>bb ansible render</code>.</p>
+    <p>The OpenTofu template includes a <code>remote-exec</code> provisioner running <code>ls</code> — its job is to block until the SSH port is up. If that step succeeded but Ansible still times out, suspect: (a) wrong <code>sudoer</code> user (OCI is <code>ubuntu</code>, Hetzner Cloud is <code>root</code>); (b) the public IP changed between tofu and ansible — re-render with <code>bb run ansible render</code>.</p>
 
     <h3>Doom Emacs install hangs / fails</h3>
     <p>The <code>Install doomemacs</code> task does everything inline: clone, sync, compile vterm, install many npm-based LSP servers. If npm is wedged the task fails late. Re-running the playbook is safe — it&rsquo;s gated by <code>creates: ~/.emacs.d</code>, so you&rsquo;ll need to delete <code>~/.emacs.d</code> on the VM to retry from scratch.</p>
@@ -1072,7 +1073,7 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
 
     <p>To preview <em>just</em> the Ansible data shape:</p>
 
-<pre><code>(require '[io.github.amiorin.walter.ansible :as a])
+<pre><code>(require '[io.github.bigconfig-ai.walter.ansible :as a])
 (a/data-fn {} {})
 (a/render :inventory (a/data-fn {} {}))</code></pre>
   </section>
@@ -1082,7 +1083,7 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
     <h2>Project structure</h2>
 
 <pre><code>walter/
-├── bb.edn                              <span class="com"># Babashka tasks &amp; :init opts</span>
+├── bb.edn                              <span class="com"># Babashka dependency config</span>
 ├── deps.edn                            <span class="com"># Clojure deps (big-config, once, cheshire, clj-yaml…)</span>
 ├── devenv.nix                          <span class="com"># Local dev environment (Nix)</span>
 ├── .envrc / .envrc.private.example     <span class="com"># direnv hooks &amp; secrets template</span>
@@ -1090,14 +1091,14 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
 ├── CLAUDE.md                           <span class="com"># Guidance for AI coding assistants</span>
 │
 ├── src/
-│   ├── clj/io/github/amiorin/walter/
+│   ├── clj/io/github/bigconfig_ai/walter/
 │   │   ├── package.clj                 <span class="com"># Top-level walter workflow (create / delete)</span>
 │   │   ├── tools.clj                   <span class="com"># Ansible workflow definition + render transforms</span>
 │   │   ├── ansible.clj                 <span class="com"># data-fn: users / repos / packages / SSH / inventory</span>
 │   │   ├── options.clj                 <span class="com"># Static OCI + S3 defaults</span>
 │   │   └── params.clj                  <span class="com"># opts-fn composition</span>
 │   │
-│   └── resources/io/github/amiorin/walter/tools/
+│   └── resources/io/github/bigconfig-ai/walter/tools/
 │       ├── tofu/
 │       │   ├── oci/main.tf             <span class="com"># OCI Ampere VM template</span>
 │       │   └── hcloud/main.tf          <span class="com"># Hetzner cx23 template</span>
@@ -1125,7 +1126,7 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
     <h2>License</h2>
     <p>Copyright © 2026 Alberto Miorin. Distributed under the <a href="https://opensource.org/license/mit">MIT License</a>.</p>
     <hr>
-    <p class="header-meta">Single-page manual generated from the repo. For the source of truth, read <code>bb.edn</code>, <code>src/clj/io/github/amiorin/walter/</code>, and <code>src/resources/io/github/amiorin/walter/tools/</code>.</p>
+    <p class="header-meta">Single-page manual generated from the repo. For the source of truth, read <code>run</code>, <code>src/clj/io/github/bigconfig_ai/walter/</code>, and <code>src/resources/io/github/bigconfig-ai/walter/tools/</code>.</p>
   </section>
 
   </main>

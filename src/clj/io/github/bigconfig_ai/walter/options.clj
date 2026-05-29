@@ -1,4 +1,4 @@
-(ns io.github.amiorin.walter.options
+(ns io.github.bigconfig-ai.walter.options
   (:require
    [big-config.render :as render]
    [big-config.workflow :as workflow]))

@@ -1,4 +1,4 @@
-(ns io.github.amiorin.walter.package
+(ns io.github.bigconfig-ai.walter.package
   (:require
    [big-config :as bc]
    [big-config.core :as core]
@@ -6,10 +6,10 @@
    [big-config.step-fns :as step-fns]
    [big-config.utils :refer [debug]]
    [big-config.workflow :as workflow]
-   [io.github.amiorin.once.tools :as tools-once]
-   [io.github.amiorin.walter.options :as options]
-   [io.github.amiorin.walter.params :as params]
-   [io.github.amiorin.walter.tools :as tools-walter]))
+   [io.github.bigconig-ai.once.tools :as tools-once]
+   [io.github.bigconfig-ai.walter.options :as options]
+   [io.github.bigconfig-ai.walter.params :as params]
+   [io.github.bigconfig-ai.walter.tools :as tools-walter]))
 
 (def step-fns [workflow/print-step-fn
                (step-fns/->exit-step-fn ::end)
@@ -22,6 +22,28 @@
                                     ::tools-walter/ansible ["render ansible-playbook:main.yml" params/opts-fn]
                                     ::tools-once/ansible-local ["render ansible-playbook:main.yml" params/opts-fn]]}))
 
+(def build
+  (workflow/->workflow* {:first-step ::start-create-or-delete
+                         :last-step ::end-create-or-delete
+                         :pipeline [::tools-once/tofu ["render" params/opts-fn]
+                                    ::tools-walter/ansible ["render" params/opts-fn]
+                                    ::tools-once/ansible-local ["render" params/opts-fn]]}))
+
+(def delete
+  (workflow/->workflow* {:first-step ::start-create-or-delete
+                         :last-step ::end-create-or-delete
+                         :pipeline [::tools-once/tofu ["render tofu:init tofu:destroy:-auto-approve" params/opts-fn]]}))
+
+(def ^:private tool-workflows
+  {::tools-once/tofu tools-once/tofu
+   ::tools-walter/ansible tools-walter/ansible
+   ::tools-once/ansible-local tools-once/ansible-local})
+
+(when-let [register-workflow (ns-resolve 'big-config.workflow 'register-workflow)]
+  (run! (fn [[step f]]
+          (register-workflow step f))
+        tool-workflows))
+
 (comment
   (debug tap-values
     (create [] (merge options/walter
@@ -33,18 +55,16 @@
                                          :out *out*}})))
   (-> tap-values))
 
-(def delete
-  (workflow/->workflow* {:first-step ::start-create-or-delete
-                         :last-step ::end-create-or-delete
-                         :pipeline [::tools-once/tofu ["render tofu:init tofu:destroy:-auto-approve" params/opts-fn]]}))
-
 (defn walter
   [step-fns {:keys [::workflow/params] :as opts}]
-  (let [hyperscaler "hcloud"
-        opts (->> opts
+  (let [opts (->> opts
                   (merge {::workflow/create-fn create
+                          ::workflow/build-fn build
                           ::workflow/delete-fn delete})
-                  (workflow/merge-params [::tools-once/tofu-opts] params))
+                  (workflow/merge-params [::tools-once/tofu-opts
+                                          ::tools-walter/ansible-opts
+                                          ::tools-once/ansible-local-opts]
+                                         params))
         wf (core/->workflow {:first-step ::start
                              :wire-fn (fn [step step-fns]
                                         (case step
@@ -61,8 +81,8 @@
 
 (comment
   (debug tap-values
-    (walter* "create" (merge options/walter
-                             {::bc/env :repl
-                              ::run/shell-opts {:err *err*
-                                                :out *out*}})))
+    (walter* "build" (merge options/walter
+                            {::bc/env :repl
+                             ::run/shell-opts {:err *err*
+                                               :out *out*}})))
   (-> tap-values))

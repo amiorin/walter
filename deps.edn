@@ -1,13 +1,11 @@
 {:paths   ["src/clj" "src/resources"]
- :deps    {org.clojure/clojure              {:mvn/version "1.12.3"}
-           io.github.amiorin/big-config     {:git/tag "0.3.375", :git/sha "18fa4ab" :git/url "https://github.com/amiorin/big-config"}
-           #_#_io.github.amiorin/big-config {:local/root "../../big-config/main"}
+ :deps    {org.clojure/clojure              {:mvn/version "1.12.5"}
+           io.github.amiorin/big-config     {:git/url "https://github.com/bigconfig-ai/big-config.git"
+                                             :git/sha "2a3659e707f58eb743252c5493e7270682bb8d3d"}
+           io.github.bigconig-ai/once       {:git/url "https://github.com/bigconfig-ai/once.git"
+                                             :git/sha "cb7a0802eb532415e59d1eecf45b0c83f3dad9fb"}
            cheshire/cheshire                {:mvn/version "6.2.0"}
-           clj-commons/clj-yaml             {:mvn/version "1.0.29"}
-           com.rpl/specter                  {:mvn/version "1.1.6"}
-           babashka/fs                      {:mvn/version "0.5.33"}
-           babashka/process                 {:mvn/version "0.6.25"}
-           io.github.amiorin/once           {:git/sha "0a37932f2baf218b1c52bda2982f34fe85b6f8dd"}}
+           clj-commons/clj-yaml             {:mvn/version "1.0.29"}}
  :aliases {:dev  {:extra-paths ["env/dev/clj" "test"]
                   :jvm-opts ["-Djdk.attach.allowAttachSelf=true"]}
            :test {:extra-paths ["test"]

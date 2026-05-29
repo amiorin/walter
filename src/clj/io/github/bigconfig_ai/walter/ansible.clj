@@ -1,4 +1,4 @@
-(ns io.github.amiorin.walter.ansible
+(ns io.github.bigconfig-ai.walter.ansible
   (:require
    [cheshire.core :as json]
    [clj-yaml.core :as yaml]))

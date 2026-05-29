@@ -1,11 +1,11 @@
-(ns io.github.amiorin.walter.tools
+(ns io.github.bigconfig-ai.walter.tools
   (:require
    [big-config :as bc]
    [big-config.render :as render]
    [big-config.step-fns :as step-fns]
    [big-config.utils :refer [debug keyword->path]]
    [big-config.workflow :as workflow]
-   [io.github.amiorin.walter.ansible :as a]))
+   [io.github.bigconfig-ai.walter.ansible :as a]))
 
 (def step-fns [workflow/print-step-fn
                (step-fns/->exit-step-fn ::workflow/end)
