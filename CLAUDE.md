@@ -6,7 +6,7 @@ This file describes the Walter Python codebase for AI assistants. Read it before
 
 Walter provisions a cloud VM (or targets an existing no-infra host through Once's shared Tofu templates) and configures it as a development workstation with Ansible. This leaf is the Python implementation and mirrors `../clojure` and `../typescript`.
 
-It depends on the Python `once` package for shared `tofu`, `ansible-local`, and Tofu-output parameter extraction, and on `big-config` for workflow/rendering.
+It depends on the Python `once` package for shared `tofu`, `ansible-local`, and Tofu-output parameter extraction, and on the Python SDK (`big-config`) for workflow/rendering.
 
 ## Commands
 

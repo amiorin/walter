@@ -1,8 +1,8 @@
 # Walter (Python)
 
-Walter provisions cloud instances (Hetzner Cloud, OCI, DigitalOcean, or an existing `no-infra` host through the shared Once Tofu templates) and configures them as a personalized development environment. It combines **OpenTofu** for infrastructure and **Ansible** for configuration, orchestrated through [big-config](https://github.com/bigconfig-ai/big-config).
+Walter provisions cloud instances (Hetzner Cloud, OCI, DigitalOcean, or an existing `no-infra` host through the shared Once Tofu templates) and configures them as a personalized development environment. It combines **OpenTofu** for infrastructure and **Ansible** for configuration, orchestrated through the Python SDK (the [`big-config`](https://github.com/bigconfig-ai/big-config) package).
 
-This is the Python implementation. It depends on the Python [`once`](https://github.com/bigconfig-ai/once) package for the shared `tofu` and `ansible-local` stages and on `big-config` for the workflow engine and renderer (both pinned to GitHub commits in `pyproject.toml`). It mirrors `../clojure` and `../typescript`.
+This is the Python implementation. It depends on the Python [`once`](https://github.com/bigconfig-ai/once) package for the shared `tofu` and `ansible-local` stages and on the Python SDK (`big-config`) for the workflow engine and renderer (both pinned to GitHub commits in `pyproject.toml`). It mirrors `../clojure` and `../typescript`.
 
 ## Features
 
