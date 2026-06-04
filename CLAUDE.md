@@ -6,7 +6,7 @@ This file describes the Walter TypeScript codebase for AI assistants. Read it be
 
 Walter provisions a cloud VM (or targets an existing no-infra host through Once's shared Tofu templates) and configures it as a development workstation with Ansible. This leaf is the TypeScript implementation and mirrors `../clojure` and `../python`.
 
-It depends on the TypeScript `once` package for shared `tofu`, `ansible-local`, and Tofu-output parameter extraction, and on `big-config` for workflow/rendering.
+It depends on the TypeScript `once` package for shared `tofu`, `ansible-local`, and Tofu-output parameter extraction, and on the TypeScript SDK (`big-config`) for workflow/rendering.
 
 ## Commands
 
