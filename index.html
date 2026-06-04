@@ -420,7 +420,7 @@
       <ul>
         <li><a href="#workflow">Create workflow</a></li>
         <li><a href="#arch-namespaces">Namespaces</a></li>
-        <li><a href="#arch-bigconfig">big-config engine</a></li>
+        <li><a href="#arch-bigconfig">BigConfig SDK engine</a></li>
         <li><a href="#arch-rendering">Template rendering</a></li>
         <li><a href="#arch-profiles">Profiles &amp; .dist/</a></li>
       </ul>
@@ -479,7 +479,7 @@
       <li>Optionally update local SSH config so the host is reachable by name.</li>
     </ol>
 
-    <p>All three steps are composed as a single <code>big-config</code> workflow. You can run the whole thing with <code>bb run package create</code>, or invoke each stage individually for debugging.</p>
+    <p>All three steps are composed as a single BigConfig SDK workflow. You can run the whole thing with <code>bb run package create</code>, or invoke each stage individually for debugging.</p>
 
     <div class="grid">
       <div class="card">
@@ -565,7 +565,7 @@ packages = [ pkgs.jet pkgs.hcl2json pkgs.awscli2 pkgs.oci-cli ];</code></pre>
     <ol>
       <li><strong>Static defaults</strong> — <code>src/clj/io/github/bigconfig_ai/walter/options.clj</code></li>
       <li><strong>Run profile defaults</strong> — the root <code>run</code> script passes a placeholder profile</li>
-      <li><strong>Environment variables</strong> — read by <code>big-config</code> as <code>BC_PAR_*</code></li>
+      <li><strong>Environment variables</strong> — read by the SDK as <code>BC_PAR_*</code></li>
     </ol>
 
     <p>Secrets and per-machine values live in <code>.envrc.private</code> (untracked). The example file lists three:</p>
@@ -575,7 +575,7 @@ packages = [ pkgs.jet pkgs.hcl2json pkgs.awscli2 pkgs.oci-cli ];</code></pre>
 <span class="kw">export</span> BC_PAR_DO_TOKEN=...                                          <span class="com"># DigitalOcean (reserved; not used by current providers)</span>
 <span class="kw">export</span> ATUIN_LOGIN=<span class="str">"atuin login -u amiorin -p ... -k '...'"</span>   <span class="com"># injected verbatim into the Ansible run</span></code></pre>
 
-    <p>The <code>BC_PAR_</code> prefix is consumed by <code>big-config</code> and exposed in Clojure as the <code>:io.github.bigconfig-ai.walter/&hellip;</code> params map. The <code>ATUIN_LOGIN</code> variable is looked up at Ansible run-time inside the user role to seed Atuin shell history sync.</p>
+    <p>The <code>BC_PAR_</code> prefix is consumed by the SDK and exposed in Clojure as the <code>:io.github.bigconfig-ai.walter/&hellip;</code> params map. The <code>ATUIN_LOGIN</code> variable is looked up at Ansible run-time inside the user role to seed Atuin shell history sync.</p>
   </section>
 
   <!-- ============================================================ -->
@@ -744,7 +744,7 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
         <tr><td><code>walter.tools</code></td><td>The <code>ansible</code> workflow definition: renders the playbook tree, the inventory, packages.yml, repos.yml, ssh-config.yml, default.config.yml.</td></tr>
         <tr><td><code>walter.ansible</code></td><td>Pure data layer. <code>data-fn</code> produces users/repos/packages/SSH config. <code>render</code> emits YAML/JSON for each Ansible artifact.</td></tr>
         <tr><td><code>walter.options</code></td><td>Fallback profile defaults used when no profile is supplied by <code>run</code>.</td></tr>
-        <tr><td><code>walter.params</code></td><td>Tiny composition: <code>opts-fn</code> and <code>walter-opts</code> — the entry points into <code>big-config</code>&rsquo;s param machinery.</td></tr>
+        <tr><td><code>walter.params</code></td><td>Tiny composition: <code>opts-fn</code> and <code>walter-opts</code> — the entry points into the SDK&rsquo;s param machinery.</td></tr>
       </tbody>
     </table>
 
@@ -756,9 +756,9 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
 
   <!-- ============================================================ -->
   <section id="arch-bigconfig">
-    <h2>big-config workflow engine</h2>
+    <h2>BigConfig SDK workflow engine</h2>
 
-    <p>Walter doesn&rsquo;t reinvent orchestration; it leans on the sibling library <a href="https://github.com/bigconfig-ai/big-config">big-config</a>. The engine provides:</p>
+    <p>Walter doesn&rsquo;t reinvent orchestration; it leans on the sibling BigConfig SDK library <a href="https://github.com/bigconfig-ai/big-config">big-config</a>. The engine provides:</p>
     <ul>
       <li><code>core/-&gt;workflow</code> — build a state machine where each <em>step</em> is a node with a transition table.</li>
       <li><code>workflow/-&gt;workflow*</code> — build a <em>pipeline</em>: an ordered list of <code>[step-keyword [args opts-fn]]</code> tuples that runs each step in turn.</li>
@@ -775,7 +775,7 @@ clojure -A:dev           <span class="com"># REPL with env/dev/clj on the classp
   <section id="arch-rendering">
     <h2>Template rendering</h2>
 
-    <p>Templates live under <code>src/resources/io/github/bigconfig-ai/walter/tools/&lt;tool&gt;</code>. Rendering happens via <code>big-config.render</code>:</p>
+    <p>Templates live under <code>src/resources/io/github/bigconfig-ai/walter/tools/&lt;tool&gt;</code>. Rendering happens via the SDK's <code>big-config.render</code>:</p>
 
 <pre><code><span class="com">;; from walter.tools/ansible</span>
 (workflow/prepare

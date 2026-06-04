@@ -37,7 +37,7 @@ clojure-lsp format
 
 ## Architecture
 
-The project uses [big-config](https://github.com/bigconfig-ai/big-config) as its workflow engine. The pattern throughout is:
+The project uses the Clojure SDK (the [`big-config`](https://github.com/bigconfig-ai/big-config) package) as its workflow engine. The pattern throughout is:
 - `*` suffix functions (e.g. `ansible*`, `walter*`) are CLI/REPL entry points — they parse CLI args and call the non-starred variant
 - Workflows are composed as `step-fns` pipelines using `big-config.workflow`
 - Templates are rendered from `src/resources/` to `.dist/` before being executed
@@ -48,11 +48,11 @@ The project uses [big-config](https://github.com/bigconfig-ai/big-config) as its
 - `io.github.bigconfig-ai.walter.tools` — Walter-specific `ansible` workflow definition
 - `io.github.bigconfig-ai.walter.ansible` — data generation for Ansible: users, packages (devbox), repos, SSH config, inventory
 - `io.github.bigconfig-ai.walter.options` — static config; `bb` is the fallback profile when no `run` profile is supplied
-- `io.github.bigconfig-ai.walter.params` — composes `opts-fn` / `walter-opts` for reading big-config params
+- `io.github.bigconfig-ai.walter.params` — composes `opts-fn` / `walter-opts` for reading SDK params
 
 **External dependencies:**
 - `io.github.bigconfig-ai/once` — provides shared `tofu*` and `ansible-local*` tooling
-- `io.github.amiorin/big-config` — workflow engine, template rendering, step functions (pinned to the `bigconfig-ai/big-config` Git repo by URL)
+- `io.github.amiorin/big-config` — Clojure SDK package: workflow engine, template rendering, step functions (pinned to the `bigconfig-ai/big-config` Git repo by URL)
 
 ## REPL Development
 

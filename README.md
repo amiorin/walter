@@ -1,6 +1,6 @@
 # Walter
 
-Walter provisions cloud instances (or targets an existing host) and configures them as a personalized development environment. It combines **OpenTofu** for infrastructure and **Ansible** for configuration, orchestrated through **Clojure** and **Babashka** on top of [big-config](https://github.com/bigconfig-ai/big-config).
+Walter provisions cloud instances (or targets an existing host) and configures them as a personalized development environment. It combines **OpenTofu** for infrastructure and **Ansible** for configuration, orchestrated through **Clojure** and **Babashka** on top of the Clojure SDK (the [`big-config`](https://github.com/bigconfig-ai/big-config) package).
 
 ## Features
 
