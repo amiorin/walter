@@ -647,9 +647,12 @@ resource <span class="str">"hcloud_server"</span> <span class="str">"node1"</spa
 
     <p>The top-level orchestration. Internally a workflow with two steps wired up: <code>::start</code> &rarr; <code>::end</code>, where the inner pipeline runs OpenTofu, then Ansible, then ansible-local.</p>
 
-<pre><code>bb run package build         <span class="com"># render all stages without applying/provisioning</span>
+<pre><code>bb run package validate      <span class="com"># pre-flight profile/tool/credential checks</span>
+bb run package describe      <span class="com"># providers, compute reachability, workstation summary</span>
+bb run package build         <span class="com"># render all stages without applying/provisioning</span>
 bb run package create        <span class="com"># tofu render+init+apply → ansible render+playbook → ansible-local render+playbook</span>
-bb run package delete        <span class="com"># tofu render+init+destroy (skips ansible)</span></code></pre>
+bb run package delete        <span class="com"># tofu render+init+destroy (skips ansible)</span>
+bb run package git-check lock build unlock-any <span class="com"># advanced Git/lock workflow helpers</span></code></pre>
 
     <p>All commands go through the root Babashka <code>run</code> script. Each command delegates to a <em>starred</em> Clojure variant (e.g. <code>walter*</code>) that parses CLI args and a non-starred core variant invoked from the REPL.</p>
   </section>
@@ -671,7 +674,8 @@ bb run tofu tofu:destroy:-auto-approve    <span class="com"># used by 'bb run pa
 
     <p>You can chain steps in one invocation; they share a single rendered tree:</p>
 
-<pre><code>bb run tofu render tofu:init tofu:plan</code></pre>
+<pre><code>bb run tofu render tofu:init tofu:plan
+bb run tofu git-check lock render tofu:init tofu:plan unlock-any</code></pre>
   </section>
 
   <!-- ============================================================ -->

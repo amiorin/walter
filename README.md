@@ -34,15 +34,18 @@ export BC_PAR_NO_INFRA_COMPUTE_SUDOER=root
 
 ```bash
 bb run package validate # validate params, tools, credentials, and Ansible data
+bb run package describe # providers, compute reachability, workstation summary
 bb run package build    # render all stages without applying/provisioning
 bb run package create   # tofu -> ansible -> ansible-local
 bb run package delete   # destroy the compute Tofu stage
+bb run package git-check lock build unlock-any # advanced Git/lock workflow helpers
 ```
 
 ### Individual tools
 
 ```bash
 bb run tofu render
+bb run tofu git-check lock render tofu:init tofu:plan unlock-any
 bb run tofu tofu:init
 bb run tofu tofu:plan
 bb run tofu tofu:apply

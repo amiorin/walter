@@ -7,6 +7,7 @@
    [big-config.utils :refer [debug]]
    [big-config.workflow :as workflow]
    [io.github.bigconfig-ai.once.tools :as tools-once]
+   [io.github.bigconfig-ai.walter.describe :as describe]
    [io.github.bigconfig-ai.walter.options :as options]
    [io.github.bigconfig-ai.walter.params :as params]
    [io.github.bigconfig-ai.walter.tools :as tools-walter]
@@ -62,7 +63,8 @@
                   (merge {::workflow/create-fn create
                           ::workflow/build-fn build
                           ::workflow/delete-fn delete
-                          ::workflow/validate-fn validation/validate})
+                          ::workflow/validate-fn validation/validate
+                          ::workflow/describe-fn describe/describe})
                   (workflow/merge-params [::tools-once/tofu-opts
                                           ::tools-walter/ansible-opts
                                           ::tools-once/ansible-local-opts]

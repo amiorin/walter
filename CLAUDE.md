@@ -11,10 +11,14 @@ Walter is an infrastructure automation tool that provisions cloud VMs (Hetzner C
 The canonical CLI runs through the root Babashka `run` script:
 
 ```bash
+bb run package validate                    # Validate params, tools, credentials, and Ansible data
+bb run package describe                    # Providers, compute reachability, workstation summary
 bb run package build                       # Render all stages without applying/provisioning
 bb run package create                      # Full workflow: tofu + ansible + ansible-local
 bb run package delete                      # Destroy the compute Tofu stage
+bb run package git-check lock build unlock-any # Advanced Git/lock workflow helpers
 bb run tofu render                         # Render OpenTofu templates to .dist/
+bb run tofu git-check lock render tofu:init tofu:plan unlock-any # Tool-level SDK workflow helpers
 bb run tofu tofu:init                      # Initialize OpenTofu
 bb run tofu tofu:plan                      # Preview infrastructure changes
 bb run tofu tofu:apply                     # Apply infrastructure
@@ -45,6 +49,7 @@ The project uses the Clojure SDK (the [`big-config`](https://github.com/bigconfi
 **Key namespaces:**
 - `io.github.bigconfig-ai.walter.cli` — `bb run ...` command parser
 - `io.github.bigconfig-ai.walter.package` — top-level `walter` workflow, orchestrates `tofu` → `ansible` → `ansible-local`
+- `io.github.bigconfig-ai.walter.describe` — post-provisioning report for providers, compute reachability, and workstation summary
 - `io.github.bigconfig-ai.walter.tools` — Walter-specific `ansible` workflow definition
 - `io.github.bigconfig-ai.walter.ansible` — data generation for Ansible: users, packages (devbox), repos, SSH config, inventory
 - `io.github.bigconfig-ai.walter.options` — static config; `bb` is the fallback profile when no `run` profile is supplied

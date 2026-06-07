@@ -205,7 +205,12 @@
       (is (some #(str/includes? % "repos[0]") details))
       (is (some #(str/includes? % "packages[0]") details)))))
 
-(deftest cli-exposes-only-package-validate
-  (is (contains? cli/package-commands "validate"))
+(deftest cli-exposes-package-workflow-verbs
+  (doseq [command ["validate" "describe" "build" "create" "delete"
+                   "lock" "git-check" "git-push" "unlock-any"]]
+    (is (contains? cli/package-commands command))
+    (is (str/includes? cli/help-text command)))
   (is (str/includes? cli/help-text "bb run package validate"))
+  (is (str/includes? cli/help-text "bb run package describe"))
+  (is (str/includes? cli/help-text "git-check lock render"))
   (is (not (str/includes? cli/help-text "bb run validate"))))
