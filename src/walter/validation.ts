@@ -6,7 +6,7 @@ import type { Opts } from "big-config";
 import { readBcPars } from "big-config/workflow";
 import { tofuParams } from "once/dist/src/once/params.js";
 import * as ansible from "./ansible.js";
-import { okAlias, paramsOf, profileOf, status, toBcOpts } from "./interop.js";
+import { okAlias, paramsOf, profileOf, status, syncAliases, toBcOpts } from "./interop.js";
 
 export interface CheckError {
   check: "schema" | "tool" | "credential" | "ansible-data";
@@ -352,7 +352,9 @@ export function ansibleDataErrors(opts: Opts): CheckError[] {
 }
 
 export function validateReport(opts: Opts, env: Record<string, string | undefined> = process.env): ValidateResult {
-  const merged = readBcPars(toBcOpts(opts), env);
+  // syncAliases pushes the BC_PAR_* overrides readBcPars wrote to WF_PARAMS back onto
+  // the friendly `params` alias; without it, toBcOpts/paramsOf prefer the stale alias.
+  const merged = syncAliases(readBcPars(toBcOpts(opts), env));
   const params = paramsOf(merged);
   const errors = [
     ...(schemaErrors(merged) ?? []),

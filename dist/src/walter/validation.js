@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 import { readBcPars } from "big-config/workflow";
 import { tofuParams } from "once/dist/src/once/params.js";
 import * as ansible from "./ansible.js";
-import { okAlias, paramsOf, profileOf, status, toBcOpts } from "./interop.js";
+import { okAlias, paramsOf, profileOf, status, syncAliases, toBcOpts } from "./interop.js";
 const sshPubkeyRx = /^ssh-(ed25519|rsa|dss|ecdsa) [A-Za-z0-9+/=]+( .*)?$/;
 const PLACEHOLDER = "REPLACE_ME";
 const PLACEHOLDER_MSG = "must replace REPLACE_ME with a real value";
@@ -341,7 +341,9 @@ export function ansibleDataErrors(opts) {
     }
 }
 export function validateReport(opts, env = process.env) {
-    const merged = readBcPars(toBcOpts(opts), env);
+    // syncAliases pushes the BC_PAR_* overrides readBcPars wrote to WF_PARAMS back onto
+    // the friendly `params` alias; without it, toBcOpts/paramsOf prefer the stale alias.
+    const merged = syncAliases(readBcPars(toBcOpts(opts), env));
     const params = paramsOf(merged);
     const errors = [
         ...(schemaErrors(merged) ?? []),
