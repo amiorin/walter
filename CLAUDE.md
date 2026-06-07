@@ -17,6 +17,8 @@ npm test
 npm run build
 npm run walter -- help
 npm run walter -- package validate
+npm run walter -- package describe
+npm run walter -- package git-check lock build unlock-any
 npm run walter -- package build
 node run package build
 ```
@@ -25,6 +27,7 @@ Individual tools:
 
 ```bash
 npm run walter -- tofu render
+npm run walter -- tofu git-check lock render tofu:init tofu:plan unlock-any
 npm run walter -- ansible render -- ansible-playbook main.yml
 npm run walter -- ansible-local render -- ansible-playbook main.yml
 ```
@@ -39,6 +42,7 @@ Do not run `package create`, `package delete`, `tofu:apply`, or `tofu:destroy` u
 - `src/walter/ansible.ts` — pure Ansible data and generated YAML/JSON render functions.
 - `src/walter/params.ts` — `BC_PAR_*` overrides + Once Tofu output params.
 - `src/walter/validation.ts` — schema/tool/credential/Ansible-data validation.
+- `src/walter/describe.ts` — providers, compute reachability, and workstation summary report.
 
 Keep generated `.dist/` out of source and preserve kebab-case parameter keys.
 

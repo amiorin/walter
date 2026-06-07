@@ -4,6 +4,7 @@ import { describe, expect, test, vi } from "vitest";
 import { EXIT, RENDER_PROFILE, WF_PARAMS } from "big-config";
 import * as ansible from "../src/walter/ansible.js";
 import { main } from "../src/cli.js";
+import { describe as describeStep, describeReport } from "../src/walter/describe.js";
 import { walter } from "../src/walter/options.js";
 import { walterStar } from "../src/walter/package.js";
 import * as v from "../src/walter/validation.js";
@@ -136,11 +137,65 @@ describe("validation", () => {
   });
 });
 
+describe("describe", () => {
+  const baseOpts = {
+    [RENDER_PROFILE]: "walter-test",
+    [WF_PARAMS]: {
+      "provider-compute": "no-infra",
+      "provider-backend": "local",
+      package: "walter",
+      ip: "203.0.113.10",
+      user: "ubuntu",
+      sudoer: "root",
+      "compute-pubkey": TEST_COMPUTE_PUBKEY,
+    },
+  };
+
+  test("summarizes a reachable workstation", () => {
+    const calls: any[] = [];
+    const result = describeReport(baseOpts, (args, opts) => {
+      calls.push([args, opts]);
+      return { ok: true, exit: 0, out: "", err: "" };
+    }, (opts) => opts);
+    expect(result.profile).toBe("walter-test");
+    expect(result.providers).toEqual({ compute: "no-infra", backend: "local" });
+    expect(result.compute.running).toBe(true);
+    expect(result.compute.detail).toBe("ssh ok");
+    expect(result.workstation.hosts).toEqual(["203.0.113.10"]);
+    expect(result.workstation.sudoer).toBe("root");
+    expect(result.workstation.repoCount).toBeGreaterThan(0);
+    expect(result.workstation.packageCount).toBeGreaterThan(0);
+    expect(calls[0][0][0]).toBe("ssh");
+  });
+
+  test("soft-fails unreachable ssh", () => {
+    const result = describeReport(baseOpts, () => ({ ok: false, exit: 255, out: "", err: "connection refused" }), (opts) => opts);
+    expect(result.compute.running).toBe(false);
+    expect(result.compute.detail).toContain("connection refused");
+    expect(result.fatalError).toBe(false);
+  });
+
+  test("workflow step sets exit status", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const result = describeStep([], {}, () => ({ profile: "test", providers: {}, compute: {}, workstation: {}, fatalError: false }));
+    expect(result.exit).toBe(0);
+    expect(result["describe/result"].profile).toBe("test");
+    log.mockRestore();
+  });
+});
+
 describe("cli", () => {
-  test("does not expose top-level validate", () => {
+  test("exposes package workflow verbs and rejects top-level validate", () => {
     const exit = vi.spyOn(process, "exit").mockImplementation(((code?: string | number | null) => { throw new Error(`exit:${code}`); }) as never);
     const err = vi.spyOn(console, "error").mockImplementation(() => undefined);
     expect(() => main(["validate"], walter)).toThrow("exit:1");
+    const output = err.mock.calls.flat().join("\n");
+    for (const command of ["validate", "describe", "build", "create", "delete", "lock", "git-check", "git-push", "unlock-any"]) {
+      expect(output).toContain(command);
+    }
+    expect(output).toContain("walter package validate");
+    expect(output).toContain("walter package describe");
+    expect(output).toContain("git-check lock render");
     exit.mockRestore();
     err.mockRestore();
   });

@@ -42,9 +42,11 @@ export BC_PAR_NO_INFRA_COMPUTE_SUDOER=root
 
 ```bash
 npm run walter -- package validate # validate params, tools, credentials, and Ansible data
+npm run walter -- package describe # providers, compute reachability, workstation summary
 npm run walter -- package build    # render all stages without applying/provisioning
 npm run walter -- package create   # tofu -> ansible -> ansible-local
 npm run walter -- package delete   # destroy the compute Tofu stage
+npm run walter -- package git-check lock build unlock-any # advanced Git/lock workflow helpers
 ```
 
 The root `run` script is the launcher-friendly entry point (it supplies the default profile); after `npm run build`:
@@ -57,6 +59,7 @@ node run package build
 
 ```bash
 npm run walter -- tofu render
+npm run walter -- tofu git-check lock render tofu:init tofu:plan unlock-any
 npm run walter -- tofu tofu:init
 npm run walter -- tofu tofu:plan
 npm run walter -- tofu tofu:apply

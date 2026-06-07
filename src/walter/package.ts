@@ -4,6 +4,7 @@ import {
   WF_BUILD_FN,
   WF_CREATE_FN,
   WF_DELETE_FN,
+  WF_DESCRIBE_FN,
   WF_PARAMS,
   WF_VALIDATE_FN,
   type Opts,
@@ -20,6 +21,7 @@ import {
   runSteps,
 } from "big-config/workflow";
 import * as onceTools from "once/dist/src/once/tools.js";
+import { describe } from "./describe.js";
 import { syncAliases, toBcOpts } from "./interop.js";
 import { optsFn } from "./params.js";
 import * as walterTools from "./tools.js";
@@ -87,6 +89,7 @@ export function walter(sfns: StepFn[], opts0: Opts): Opts {
     [WF_BUILD_FN]: build,
     [WF_DELETE_FN]: deleteWorkflow,
     [WF_VALIDATE_FN]: validate,
+    [WF_DESCRIBE_FN]: describe,
     ...opts,
   };
   const merged = mergeParams(TOOL_OPTS_KEYS, opts[WF_PARAMS] ?? {}, withFns);

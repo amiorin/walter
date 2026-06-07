@@ -13,14 +13,28 @@ import { ansibleStar } from "./walter/tools.js";
 const HELP = `Usage: walter <command> [args...]
 
 Commands:
-  package <step>...       Validate, build, provision, or tear down Walter infrastructure.
+  package <step>...       Run Walter package workflow steps for the active profile.
                             walter package validate
+                            walter package describe
                             walter package build
                             walter package create
                             walter package delete
+                            walter package git-check lock build unlock-any
 
-  Individual tools (each requires \`render\` first):
+  Package steps:
+    validate              Pre-flight profile, tool, credential, and Ansible-data checks.
+    describe              Providers, compute reachability, and workstation summary report.
+    build                 Render Walter stages without applying/provisioning.
+    create                Provision and configure the Walter workstation.
+    delete                Destroy the compute Tofu stage.
+    lock                  Acquire the BigConfig Git-tag lock.
+    git-check             Verify the Git working tree/upstream state is clean.
+    git-push              Run git push through the BigConfig workflow.
+    unlock-any            Force-release the computed BigConfig lock tag.
+
+  Individual tools (accept SDK workflow steps and exec commands):
   tofu <args>             e.g. walter tofu render tofu:init tofu:apply:-auto-approve
+                          e.g. walter tofu git-check lock render tofu:init tofu:plan unlock-any
   ansible <args>          e.g. walter ansible render -- ansible-playbook main.yml
   ansible-local <args>    e.g. walter ansible-local render -- ansible-playbook main.yml
 
@@ -29,7 +43,7 @@ Notes:
     otherwise it defaults to \`bb\` in src/walter/options.ts.
   * Any param can be overridden with BC_PAR_* environment variables.`;
 
-const PACKAGE_COMMANDS = new Set(["validate", "build", "create", "delete"]);
+const PACKAGE_COMMANDS = new Set(["validate", "describe", "build", "create", "delete", "lock", "git-check", "git-push", "unlock-any"]);
 
 function die(...lines: string[]): never {
   for (const line of lines) console.error(line);
@@ -47,7 +61,11 @@ export function main(argv0: string[], opts: Opts = bb): void {
       console.log(HELP);
       return;
     case "package":
-      if (rest.length === 0) die("Missing package step.", "Usage: walter package <validate|build|create|delete>...");
+      if (["help", "--help", "-h"].includes(rest[0] ?? "")) {
+        console.log(HELP);
+        return;
+      }
+      if (rest.length === 0) die("Missing package step.", "Usage: walter package <step>...");
       walterStar(rest, opts);
       return;
     case "tofu":
