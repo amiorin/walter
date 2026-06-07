@@ -148,11 +148,16 @@ def test_ansible_data_checks_compute_pubkey():
     assert any(":ssh_key" in e["detail"] for e in errors)
 
 
-def test_cli_exposes_only_package_validate(capsys):
-    assert "validate" in cli.PACKAGE_COMMANDS
+def test_cli_exposes_package_workflow_verbs(capsys):
+    for command in ["validate", "describe", "build", "create", "delete", "lock", "git-check", "git-push", "unlock-any"]:
+        assert command in cli.PACKAGE_COMMANDS
+        assert command in cli.HELP
     assert "walter package validate" in cli.HELP
+    assert "walter package describe" in cli.HELP
+    assert "git-check lock render" in cli.HELP
     with pytest.raises(SystemExit):
         cli.main(["validate"], options.bb)
+    assert "walter package validate" in capsys.readouterr().err
 
 
 def test_ansible_render_matches_reference_generated_files():

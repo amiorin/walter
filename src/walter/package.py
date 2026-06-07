@@ -8,6 +8,7 @@ from big_config.step_fns import exit_step_fn, print_error_step_fn
 from once import tools as once_tools
 
 from . import tools as walter_tools
+from .describe import describe
 from .interop import PARAMS, sync_aliases, to_bc_opts
 from .params import opts_fn
 from .validation import validate
@@ -78,13 +79,14 @@ TOOL_OPTS_KEYS = [
 
 
 def walter(sfns: list[StepFn], opts: Opts) -> Opts:
-    """Run a validate / build / create / delete workflow."""
+    """Run a validate / describe / build / create / delete workflow."""
     opts = to_bc_opts(opts)
     with_fns: Opts = {
         bc_workflow.CREATE_FN: create,
         bc_workflow.BUILD_FN: build,
         bc_workflow.DELETE_FN: delete_workflow,
         bc_workflow.VALIDATE_FN: validate,
+        bc_workflow.DESCRIBE_FN: describe,
         **opts,
     }
     merged = bc_workflow.merge_params(TOOL_OPTS_KEYS, opts.get(PARAMS) or {}, with_fns)

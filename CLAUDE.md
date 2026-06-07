@@ -15,6 +15,8 @@ uv sync
 uv run pytest -q
 uv run walter -- help
 uv run walter -- package validate
+uv run walter -- package describe
+uv run walter -- package git-check lock build unlock-any
 uv run walter -- package build
 uv run python run package build
 ```
@@ -23,6 +25,7 @@ Individual tools:
 
 ```bash
 uv run walter -- tofu render
+uv run walter -- tofu git-check lock render tofu:init tofu:plan unlock-any
 uv run walter -- ansible render -- ansible-playbook main.yml
 uv run walter -- ansible-local render -- ansible-playbook main.yml
 ```
@@ -37,6 +40,7 @@ Do not run `package create`, `package delete`, `tofu:apply`, or `tofu:destroy` u
 - `src/walter/ansible.py` — pure Ansible data and generated YAML/JSON render functions.
 - `src/walter/params.py` — `BC_PAR_*` overrides + Once Tofu output params.
 - `src/walter/validation.py` — schema/tool/credential/Ansible-data validation.
+- `src/walter/describe.py` — providers, compute reachability, and workstation summary report.
 
 Keep generated `.dist/` out of source and preserve kebab-case parameter keys.
 

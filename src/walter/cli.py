@@ -14,14 +14,28 @@ from .tools import ansible_star
 HELP = """Usage: walter <command> [args...]
 
 Commands:
-  package <step>...       Validate, build, provision, or tear down Walter infrastructure.
+  package <step>...       Run Walter package workflow steps for the active profile.
                             walter package validate
+                            walter package describe
                             walter package build
                             walter package create
                             walter package delete
+                            walter package git-check lock build unlock-any
 
-  Individual tools (each requires `render` first):
+  Package steps:
+    validate              Pre-flight profile, tool, credential, and Ansible-data checks.
+    describe              Providers, compute reachability, and workstation summary report.
+    build                 Render Walter stages without applying/provisioning.
+    create                Provision and configure the Walter workstation.
+    delete                Destroy the compute Tofu stage.
+    lock                  Acquire the BigConfig Git-tag lock.
+    git-check             Verify the Git working tree/upstream state is clean.
+    git-push              Run git push through the BigConfig workflow.
+    unlock-any            Force-release the computed BigConfig lock tag.
+
+  Individual tools (accept SDK workflow steps and exec commands):
   tofu <args>             e.g. walter tofu render tofu:init tofu:apply:-auto-approve
+                          e.g. walter tofu git-check lock render tofu:init tofu:plan unlock-any
   ansible <args>          e.g. walter ansible render -- ansible-playbook main.yml
   ansible-local <args>    e.g. walter ansible-local render -- ansible-playbook main.yml
 
@@ -30,7 +44,7 @@ Notes:
     otherwise it defaults to `bb` in walter/options.py.
   * Any param can be overridden with BC_PAR_* environment variables."""
 
-PACKAGE_COMMANDS = {"validate", "build", "create", "delete"}
+PACKAGE_COMMANDS = {"validate", "describe", "build", "create", "delete", "lock", "git-check", "git-push", "unlock-any"}
 
 
 def die(*lines: str) -> None:
@@ -51,10 +65,13 @@ def main(argv: list[str] | None = None, opts: Opts | None = None) -> None:
         print(HELP)
         return
     if command == "package":
+        if rest and rest[0] in {"help", "--help", "-h"}:
+            print(HELP)
+            return
         if rest:
             walter_star(rest, active_profile)
             return
-        die("Missing package step.", "Usage: walter package <validate|build|create|delete>...")
+        die("Missing package step.", "Usage: walter package <step>...")
     if command in PACKAGE_COMMANDS:
         die(f"Use `walter package {command}`.", "", HELP)
     if command == "tofu":
