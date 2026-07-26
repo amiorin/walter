@@ -1,4 +1,28 @@
-export BC_PAR_COMPUTE_PUBKEY="$(cat ~/.ssh/id_ed25519.pub)"
-export BC_PAR_HCLOUD_TOKEN=...
-export BC_PAR_DO_TOKEN=...
+# Copy to .envrc.private (gitignored) and fill in. Credentials never belong in
+# green.edn: every GREEN_PAR_* variable is overlaid onto the matching flat key
+# at run time — uppercased, hyphens as underscores.
+#
+# Which of these you need depends on the providers green.edn selects:
+#   :provider-compute "oci"           none — uses the profile in ~/.oci/config
+#   :provider-compute "hcloud"        GREEN_PAR_HCLOUD_TOKEN
+#   :provider-compute "digitalocean"  GREEN_PAR_DO_TOKEN
+#   :provider-compute "no-infra"      none
+#   :provider-backend "s3"            none — OpenTofu's ambient AWS chain
+#   :provider-backend "r2"            GREEN_PAR_R2_ACCESS_KEY_ID + _SECRET_ACCESS_KEY
+#   :provider-backend "local"         none
+
+export GREEN_PAR_HCLOUD_TOKEN=...
+export GREEN_PAR_DO_TOKEN=...
+
+export GREEN_PAR_R2_ACCESS_KEY_ID=...
+export GREEN_PAR_R2_SECRET_ACCESS_KEY=...
+
+# Any flat key can be overridden the same way, not just credentials.
+# export GREEN_PAR_COMPUTE_PUBKEY="$(cat ~/.ssh/id_ed25519.pub)"
+
+# Required to authorize a real `green delete`; leave unset otherwise.
+# export GREEN_PAR_COMPUTE_PREVENT_DESTROY=false
+
+# Not a Walter variable: the user role emits a play-time lookup of this, so the
+# value reaches the workstation without being written into a rendered file.
 export ATUIN_LOGIN="atuin login -u amiorin -p ... -k '...'"

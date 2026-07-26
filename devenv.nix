@@ -5,9 +5,12 @@
   languages.ansible.enable = true;
   languages.opentofu.enable = true;
   packages = [
+    pkgs.babashka
     pkgs.jet
     pkgs.hcl2json
     pkgs.awscli2
     pkgs.oci-cli
+    pkgs.hcloud
+    pkgs.doctl
   ];
 }

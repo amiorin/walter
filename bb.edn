@@ -1,1 +1,8 @@
-{:deps {io.github.bigconfig-ai/walter {:local/root "."}}}
+{:paths ["tasks"]
+ :deps {io.github.amiorin/green        {:local/root "/home/ubuntu/code/green"}
+        io.github.bigconfig-ai/once   {:local/root "../../once/once-for-walter"}
+        io.github.bigconfig-ai/walter {:local/root "."}}
+ :tasks
+ {pin {:doc "Stamp green-walter/green with this repository's HEAD (maintainers only)"
+       :requires ([pin])
+       :task (pin/-main)}}}

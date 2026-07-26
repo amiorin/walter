@@ -1,2 +1,1 @@
-{:lint-as {big-config.utils/assert-args-present clojure.core/->
-           big-config.utils/debug clojure.core/def}}
+{}

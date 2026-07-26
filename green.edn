@@ -1,0 +1,111 @@
+;; Desired state for the Walter workstation. Non-secret values only.
+;;
+;; Secrets and tokens are never written here: export them as GREEN_PAR_* and
+;; they are overlaid onto the matching flat key at run time. The variable name
+;; is the key uppercased with hyphens as underscores, so :do-token comes from
+;; GREEN_PAR_DO_TOKEN. Any key below can be overridden the same way.
+;;
+;; Required per provider:
+;;   oci            (none — uses :oci-config-file-profile from ~/.oci/config)
+;;   hcloud         GREEN_PAR_HCLOUD_TOKEN
+;;   digitalocean   GREEN_PAR_DO_TOKEN
+;;   no-infra       (none)
+;;   s3 backend     (none — OpenTofu uses the ambient AWS credential chain)
+;;   r2 backend     GREEN_PAR_R2_ACCESS_KEY_ID GREEN_PAR_R2_SECRET_ACCESS_KEY
+
+{:profile "walter"
+ :workdir ".green"
+
+ ;; Authorized on the workstation for every user the play creates, and the key
+ ;; ssh-agent must hold when a cloud compute provider builds the box.
+ :compute-pubkey "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHDKdUkY+SfRm6ttOz2EEZ2+i/zm+o1mpMOdMeGUr0t4 32617+amiorin@users.noreply.github.com"
+
+ ;; The workstation itself. Users are created by uid — one that names no :uid
+ ;; inherits the uid the image's default user already has.
+ :walter
+ {:tailnet "afrino-bushi.ts.net"
+
+  :users [{:name "ubuntu"
+           :doomemacs "dd72eac1971616a6ebe81067cca33b14c148cbcd"
+           :remove false}]
+
+  :repos [{:user "ubuntu" :org "amiorin" :repo "dotfiles-v3" :branch "main" :worktrees []}
+          {:user "ubuntu" :org "amiorin" :repo "albertomiorin.com" :branch "main" :worktrees ["albertomiorin"]}
+          {:user "ubuntu" :org "amiorin" :repo "big-container" :branch "main" :worktrees []}
+          {:user "ubuntu" :org "amiorin" :repo "alice" :branch "main" :worktrees []}
+          {:user "ubuntu" :org "bigconfig-ai" :repo "basecamp-once" :branch "main" :worktrees []}
+          {:user "ubuntu" :org "bigconfig-ai" :repo "big-config" :branch "main" :worktrees []}
+          {:user "ubuntu" :org "bigconfig-ai" :repo "once" :branch "main" :worktrees []}
+          {:user "ubuntu" :org "bigconfig-ai" :repo "once-ai" :branch "main" :worktrees []}
+          {:user "ubuntu" :org "bigconfig-ai" :repo "once-bigconfig" :branch "main" :worktrees []}
+          {:user "ubuntu" :org "bigconfig-ai" :repo "once-bigconfig-marketplace" :branch "main" :worktrees []}
+          {:user "ubuntu" :org "bigconfig-ai" :repo "once-caddy-redirect" :branch "main" :worktrees []}
+          {:user "ubuntu" :org "bigconfig-ai" :repo "once-forms" :branch "main" :worktrees []}
+          {:user "ubuntu" :org "bigconfig-ai" :repo "walter" :branch "main" :worktrees []}]
+
+  ;; [devbox package, the CLI it must put on PATH] — the second entry is what
+  ;; the play checks for, so a package whose binary is named differently needs
+  ;; both, as ripgrep/rg does.
+  :packages [["ripgrep" "rg"]
+             ["fish" "fish"]
+             ["emacs" "emacs"]
+             ["zellij" "zellij"]
+             ["starship" "starship"]
+             ["direnv" "direnv"]
+             ["gh" "gh"]
+             ["fd" "fd"]
+             ["fzf" "fzf"]
+             ["atuin" "atuin"]
+             ["just" "just"]
+             ["git" "git"]
+             ["cmake" "cmake"]
+             ["libtool" "libtool"]
+             ["socat" "socat"]
+             ["zoxide" "zoxide"]
+             ["pixi" "pixi"]
+             ["eza" "eza"]
+             ["zip" "zip"]
+             ["unzip" "unzip"]
+             ["d2" "d2"]
+             ["clojure-lsp" "clojure-lsp"]
+             ["btop" "btop"]
+             ["clj-kondo" "clj-kondo"]]}
+
+ :provider-compute "oci"
+ :provider-backend "s3"
+ :compute-prevent-destroy true
+
+ :s3-bucket "tf-state-251213589273-eu-west-1"
+ :s3-region "eu-west-1"
+ :r2-bucket "REPLACE_ME"
+ :r2-endpoint "REPLACE_ME"
+
+ :oci-config-file-profile "DEFAULT"
+ :oci-subnet-id "ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaaotya32pihejgi25vrdfnjda3qg52kpsjnd7od5oiqifbsi4rqqma"
+ :oci-compartment-id "ocid1.tenancy.oc1..aaaaaaaal4wmmpzv2fzkdz2vrfdizywgzjid6dqlgcankrrr7jyydo7ozb3a"
+ :oci-availability-domain "xTQn:EU-FRANKFURT-1-AD-1"
+ :oci-display-name "my-ampere-instance"
+ :oci-shape "VM.Standard.A1.Flex"
+ :oci-ocpus 1
+ :oci-memory-in-gbs 6
+ :oci-boot-volume-size-in-gbs 50
+ :oci-boot-volume-vpus-per-gb 30
+ :oci-ssh-authorized-keys "~/.ssh/id_ed25519.pub"
+
+ :hcloud-name "walter"
+ :hcloud-image "ubuntu-24.04"
+ :hcloud-server-type "cx23"
+ :hcloud-location "hel1"
+ :hcloud-ssh-keys "REPLACE_ME"
+
+ :digitalocean-name "walter"
+ :digitalocean-region "ams3"
+ :digitalocean-size "s-1vcpu-1gb-35gb-intel"
+ :digitalocean-image "ubuntu-25-10-x64"
+ :digitalocean-vpc-uuid "REPLACE_ME"
+ :digitalocean-ssh-keys "REPLACE_ME"
+
+ :no-infra-compute-ip "REPLACE_ME"
+ :no-infra-compute-user "ubuntu"
+ :no-infra-compute-sudoer "root"
+ :no-infra-compute-uid "1000"}

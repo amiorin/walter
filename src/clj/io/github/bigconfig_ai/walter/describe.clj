@@ -1,37 +1,30 @@
 (ns io.github.bigconfig-ai.walter.describe
-  "Describe the active Walter workstation profile after provisioning."
+  "Describe the active Walter desired state after provisioning.
+
+  The report shows the configured providers, compute status, and a summary of
+  the workstation the Ansible stage would build. Compute is `absent` when
+  OpenTofu holds no compute outputs, `unreachable` when it does but SSH fails,
+  and `running` otherwise; anything but `running` marks the step failed."
   (:require
-   [babashka.process :as p]
-   [big-config :as bc]
-   [big-config.core :as core]
-   [big-config.render :as render]
-   [big-config.workflow :as workflow]
+   [cheshire.core :as json]
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
    [clojure.string :as str]
-   [io.github.bigconfig-ai.walter.ansible :as ansible]
-   [io.github.bigconfig-ai.walter.params :as params]))
+   [green.cli :as green-cli]
+   [green.process :as process]
+   [io.github.bigconfig-ai.walter.tools :as tools]))
+
+;;; -------------------------------------------------------------- command helpers
 
 (def ^:private run-timeout-ms 30000)
 (def ^:private ssh-probe-timeout-ms 10000)
 
 (defn- run
   ([args] (run args {}))
-  ([args {:keys [timeout-ms extra-env]
-          :or   {timeout-ms run-timeout-ms}}]
-   (try
-     (let [proc   (p/process args (cond-> {:in  (java.io.ByteArrayInputStream. (byte-array 0))
-                                           :out :string
-                                           :err :string}
-                                    (seq extra-env) (assoc :extra-env extra-env)))
-           result (deref proc timeout-ms ::timeout)]
-       (if (= ::timeout result)
-         (do
-           (p/destroy-tree proc)
-           {:ok? false :exit -1 :out ""
-            :err (format "command timed out after %dms" timeout-ms)})
-         (let [{:keys [exit out err]} result]
-           {:ok? (zero? exit) :exit exit :out out :err err})))
-     (catch Exception e
-       {:ok? false :exit -1 :out "" :err (.getMessage e)}))))
+  ([args {:keys [timeout-ms]
+          :or {timeout-ms run-timeout-ms}
+          :as opts}]
+   (process/run-with-timeout args (dissoc opts :timeout-ms) timeout-ms)))
 
 (defn- trim-snippet [s]
   (let [s (some-> s str/trim)]
@@ -46,26 +39,6 @@
             (or exit -1)
             (if snippet (str " — " snippet) ""))))
 
-(defn- provider-summary
-  [params]
-  {:compute (:provider-compute params)
-   :backend (:provider-backend params)})
-
-(defn- compute-target
-  [{:keys [provider-compute ip user sudoer no-infra-compute-ip
-           no-infra-compute-user no-infra-compute-sudoer]}]
-  (let [ip (if (and (= provider-compute "no-infra")
-                    (or (str/blank? ip) (= "192.168.0.1" ip))
-                    (not (str/blank? no-infra-compute-ip)))
-             no-infra-compute-ip
-             ip)]
-    {:ip ip
-     :user (or (not-empty user)
-               (not-empty no-infra-compute-user)
-               (not-empty sudoer)
-               (not-empty no-infra-compute-sudoer)
-               "root")}))
-
 (defn- ssh-base-args
   [{:keys [ip user]}]
   ["ssh"
@@ -75,60 +48,132 @@
    (str user "@" ip)])
 
 (defn- ssh-run
-  [run-fn compute remote-args]
+  [run-fn compute remote-args timeout-ms]
   (run-fn (into (ssh-base-args compute) remote-args)
-          {:timeout-ms ssh-probe-timeout-ms}))
+          {:timeout-ms timeout-ms}))
+
+;;; -------------------------------------------------------------- providers + compute
+
+(defn provider-summary
+  "Return configured provider names from merged params."
+  [params]
+  {:compute (:provider-compute params)
+   :backend (:provider-backend params)})
+
+(def ^:private placeholder-ip
+  "The address Once's fallback compute params render with; never a real host."
+  "192.168.0.1")
+
+(defn- compute-target
+  [{:keys [provider-compute ip user sudoer no-infra-compute-ip
+           no-infra-compute-user no-infra-compute-sudoer]}]
+  (let [ip (if (and (= provider-compute "no-infra")
+                    (or (str/blank? ip) (= placeholder-ip ip))
+                    (not (str/blank? no-infra-compute-ip)))
+             no-infra-compute-ip
+             ip)]
+    {:ip ip
+     :user (or (not-empty user)
+               (not-empty sudoer)
+               (when (= provider-compute "no-infra")
+                 (or (not-empty no-infra-compute-user)
+                     (not-empty no-infra-compute-sudoer)))
+               "root")}))
 
 (defn- compute-status
-  [run-fn params]
-  (let [{:keys [ip] :as target} (compute-target params)]
+  "Classify compute as :running, :unreachable, or :absent.
+
+  An address can only reach the report through the tofu-compute outputs, so its
+  absence means the stage was never applied — except under `no-infra`, where
+  OpenTofu creates nothing and desired state supplies the host itself."
+  [run-fn params compute-detail]
+  (let [external? (= "no-infra" (:provider-compute params))
+        {:keys [ip] :as target} (compute-target params)]
     (cond
-      (str/blank? ip)
-      (assoc target :running? false :detail "missing IP address")
+      (or (str/blank? ip) (= placeholder-ip ip))
+      (if external?
+        (assoc target :status :unreachable :detail "no host configured")
+        (assoc target :status :absent
+               :detail (or compute-detail
+                           (str "no OpenTofu state in "
+                                (tools/tool-dir params "tofu-compute")))))
 
       :else
-      (let [{:keys [ok?] :as result} (ssh-run run-fn target ["true"])]
+      (let [{:keys [ok?] :as result} (ssh-run run-fn target ["true"] ssh-probe-timeout-ms)]
         (assoc target
-               :running? (boolean ok?)
-               :detail (if ok?
-                         "ssh ok"
-                         (str (result-detail "ssh" result)
-                              (when (= "192.168.0.1" ip)
-                                "; no Tofu output found or host is down"))))))))
+               :status (if ok? :running :unreachable)
+               :detail (if ok? "ssh ok" (result-detail "ssh" result)))))))
 
-(defn- resolve-walter-opts
-  [opts walter-opts-fn]
-  (try
-    {:opts (walter-opts-fn opts)}
-    (catch Exception e
-      {:opts opts
-       :detail (str "could not resolve OpenTofu parameters: " (.getMessage e))})))
+;;; -------------------------------------------------------------- workstation
 
-(defn- workstation-summary
+(defn workstation-summary
+  "What the Ansible stage would build, read straight from desired state."
   [params]
-  (let [{:keys [hosts sudoer users repos packages]} (ansible/data-fn params nil)]
+  (let [{:keys [hosts sudoer users repos packages tailnet]} (tools/data-fn params nil)]
     {:hosts (vec hosts)
      :sudoer sudoer
-     :users (mapv :name users)
+     :tailnet tailnet
+     :users (mapv :name (remove :remove users))
      :repo-count (count repos)
      :package-count (count packages)}))
 
+;;; -------------------------------------------------------------- top-level
+
+(defn- tofu-output-params
+  [run-fn opts tool]
+  (let [dir (tools/tool-dir opts tool)
+        result (run-fn ["tofu" "output" "-json"]
+                       {:dir dir
+                        :extra-env (tools/backend-credential-env opts)
+                        :timeout-ms run-timeout-ms})]
+    (if (:ok? result)
+      (try
+        {:params (or (get-in (json/parse-string (:out result) keyword)
+                             [:params :value])
+                     {})}
+        (catch Exception e
+          {:detail (str tool " output was not valid JSON: " (.getMessage e))}))
+      {:detail (result-detail (str "tofu output in " dir) result)})))
+
+(defn- resolve-tofu-opts
+  [opts run-fn]
+  (let [compute (tofu-output-params run-fn opts "tofu-compute")]
+    {:opts (merge opts (:params compute))
+     :detail (:detail compute)
+     :compute-detail (:detail compute)}))
+
+(defn- report
+  [opts run-fn {:keys [detail compute-detail]}]
+  (let [compute (compute-status run-fn opts compute-detail)
+        ;; an absent compute already carries its own explanation
+        compute (cond-> compute
+                  (and detail (not= :absent (:status compute)))
+                  (update :detail #(str % "; " detail)))]
+    {:profile (:profile opts)
+     :providers (provider-summary opts)
+     :compute compute
+     :workstation (workstation-summary opts)
+     :fatal-error? false}))
+
 (defn describe-report
-  "Build a Walter describe report from `opts`."
-  ([opts] (describe-report opts run params/walter-opts))
-  ([opts run-fn walter-opts-fn]
-   (let [{opts' :opts resolve-detail :detail} (resolve-walter-opts opts walter-opts-fn)
-         profile (::render/profile opts')
-         params' (::workflow/params opts')
-         providers (provider-summary params')
-         compute (cond-> (compute-status run-fn params')
-                   resolve-detail (update :detail #(str % "; " resolve-detail)))
-         workstation (workstation-summary params')]
-     {:profile profile
-      :providers providers
-      :compute compute
-      :workstation workstation
-      :fatal-error? false})))
+  "Build a Walter describe report from flat green `opts`.
+
+  The default arity reads the compute values from OpenTofu state. The
+  two-argument arity accepts an injected command runner and treats `opts` as
+  already resolved, keeping report construction process-free in tests."
+  ([opts]
+   (let [{opts' :opts :as resolved} (resolve-tofu-opts opts run)]
+     (report opts' run (dissoc resolved :opts))))
+  ([opts run-fn]
+   (report opts run-fn nil))
+  ([opts run-fn opts-fn]
+   (try
+     (report (opts-fn opts) run-fn nil)
+     (catch Exception e
+       (let [detail (str "could not resolve OpenTofu parameters: " (.getMessage e))]
+         (report opts run-fn {:detail detail :compute-detail detail}))))))
+
+;;; -------------------------------------------------------------- reporting
 
 (defn- present
   [x]
@@ -151,26 +196,50 @@
   (println (format "  IP: %s" (present (:ip compute))))
   (println (format "  SSH user: %s" (present (:user compute))))
   (println (format "  Status: %s%s"
-                   (if (:running? compute) "running" "not reachable")
+                   (name (or (:status compute) :unknown))
                    (if-let [detail (not-empty (:detail compute))]
                      (format " (%s)" detail)
                      "")))
   (println)
   (println "Workstation:")
   (println (format "  Hosts: %s" (join-present (:hosts workstation))))
+  (println (format "  Tailnet: %s" (present (:tailnet workstation))))
   (println (format "  Sudoer: %s" (present (:sudoer workstation))))
   (println (format "  Users: %s" (join-present (:users workstation))))
   (println (format "  Repositories: %d" (:repo-count workstation)))
   (println (format "  Packages: %d" (:package-count workstation))))
 
+(defn- compute-error
+  "The failure message for compute that is anything but running."
+  [{:keys [status detail]}]
+  (when-not (= :running status)
+    (format "compute is %s%s"
+            (name (or status :unknown))
+            (if-let [detail (not-empty detail)] (str " — " detail) ""))))
+
 (defn describe
-  "big-config workflow step for `bb run package describe`."
-  [_step-fns opts]
+  "Print the report and return green's Unix-style outcome map."
+  [opts]
   (let [result (describe-report opts)]
     (print-report result)
     (merge opts
            {::result result}
-           (if (:fatal-error? result)
-             {::bc/exit 1
-              ::bc/err "describe failed"}
-             (core/ok)))))
+           (if-let [err (compute-error (:compute result))]
+             {:green/exit 1 :green/err err}
+             {:green/exit 0}))))
+
+(defn describe-file
+  "Read a desired-state file, overlay `GREEN_PAR_*`, and describe the
+  workstation it names. Describing reads OpenTofu state and the host rather
+  than changing either, so it runs outside the workflow and needs no
+  validation gate."
+  [path]
+  (try
+    (let [file (io/file path)]
+      (if-not (.exists file)
+        {:green/exit 2 :green/err (str "desired state file not found: " file)}
+        (-> (edn/read-string (slurp file))
+            green-cli/read-pars
+            describe)))
+    (catch Throwable t
+      {:green/exit 2 :green/err (or (ex-message t) (str (class t)))})))
