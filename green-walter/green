@@ -39,7 +39,7 @@
   2)
 
 ;; Managed by `bb pin` — do not edit by hand.
-(def ^:private walter-sha "0b70990b2e49f4529d3c42c2db142cfa25f9de0f")
+(def ^:private walter-sha "5b2c6870cdb9c54635bb4ef3a0b0ff05315d266f")
 (def ^:private once-sha "b81207db1c96e8ae1e6a654bd49d45aba99594de")
 (def ^:private green-sha "fb3587ce99b1e8082dada3103c1016cde61e8b74")
 
